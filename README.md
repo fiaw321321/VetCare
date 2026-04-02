@@ -1,11 +1,13 @@
-# 🐾 VetCare Management System (Modern SaaS Style)
+# 🐾 VetCare Management System (Premium Edition)
+**Status: Ready for Academic Submission**  
+**Last Updated: April 2, 2026**
 
 ![Django](https://img.shields.io/badge/Django-092E20?style=for-the-badge&logo=django&logoColor=white)
-![SQL Server](https://img.shields.io/badge/Microsoft%20SQL%20Server-CC2927?style=for-the-badge&logo=microsoft%20sql%20server&logoColor=white)
+![SQLite](https://img.shields.io/badge/SQLite-07405E?style=for-the-badge&logo=sqlite&logoColor=white)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-563D7C?style=for-the-badge&logo=bootstrap&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
 
-**VetCare - Integrated Clinic Management & POS System** คือระบบบริหารจัดการคลินิกสัตว์เลี้ยงครบวงจรระดับองค์กร (Enterprise Grade) ที่ผสมผสานการออกแบบสไตล์ซอฟต์แวร์บริการ (SaaS) ขับเคลื่อนด้วยโครงสร้างเว็บแอปพลิเคชันจาก **Python Django** ที่มั่นคงแข็งแรง และดึงประสิทธิภาพขั้นสุดด้วยคุณสมบัติ **Programmability** อันชาญฉลาดจาก **Microsoft SQL Server**
+**VetCare - Integrated Clinic Management & POS System** คือระบบบริหารจัดการคลินิกสัตว์เลี้ยงครบวงจรระดับองค์กร (Enterprise Grade) ที่ผสมผสานการออกแบบสไตล์ซอฟต์แวร์บริการ (SaaS) ขับเคลื่อนด้วยโครงสร้างเว็บแอปพลิเคชันจาก **Python Django** ที่มั่นคงแข็งแรง และรองรับการทำงานทั้งบน **SQLite (Portability)** และ **Microsoft SQL Server (High-Performance)**
 
 ---
 
