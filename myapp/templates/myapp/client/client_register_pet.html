@@ -1,0 +1,413 @@
+{% extends 'myapp/client/client_base.html' %}
+{% block title %}ทะเบียนสัตว์เลี้ยง - Client Portal{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+<style>
+/* Custom Radio Fix */
+.custom-radio { position: relative; padding-left: 0; margin-right: 1.5rem; }
+.custom-radio .form-check-input { width: 1.3em; height: 1.3em; cursor: pointer; border: 2px solid #cbd5e1; margin-right: 12px; }
+.custom-radio .form-check-input:checked { background-color: #0f766e; border-color: #0f766e; box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.1); }
+.custom-radio .form-check-label { color: #1e293b !important; cursor: pointer; font-size: 0.95rem; display: inline-flex; align-items: center; vertical-align: middle; padding-top: 2px; }
+.custom-radio .form-check-input:checked + .form-check-label { color: #0f766e !important; }
+
+/* Profile Upload UI */
+.profile-upload-wrapper {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    margin: 0 auto;
+}
+.profile-pic-container {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    border: 3px solid #e2e8f0;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    overflow: hidden;
+    position: relative;
+    background-color: #f8fafc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.profile-pic-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.upload-btn {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    width: 40px;
+    height: 40px;
+    background-color: #0f766e;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(15, 118, 110, 0.3);
+    transition: all 0.2s ease;
+    border: 3px solid white;
+}
+.upload-btn:hover {
+    background-color: #0d9488;
+    transform: scale(1.05);
+}
+
+/* Cropper Modal */
+.cropper-container-wrapper {
+    width: 100%;
+    max-height: 400px;
+    overflow: hidden;
+    background-color: #f8fafc;
+    border-radius: 12px;
+}
+.modal-cropper .modal-dialog {
+    max-width: 600px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+
+    
+    <div class="d-flex align-items-center mb-4">
+        <div class="bg-success bg-opacity-10 text-success rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 50px; height: 50px;">
+            <i class="fas fa-paw fs-4"></i>
+        </div>
+        <div>
+            <h3 class="fw-bold mb-0" style="color: #0f766e;">เพิ่มสัตว์เลี้ยงใหม่</h3>
+            <p class="text-muted mb-0">ลงทะเบียนสัตว์เลี้ยงของคุณเพื่อการดูแลรักษาที่มีประสิทธิภาพ</p>
+        </div>
+    </div>
+
+    
+    <div class="d-flex align-items-center justify-content-between p-3 mb-4 rounded-3" style="background: linear-gradient(135deg, #f0fdf4, #e0f2fe); border: 1px solid #bbf7d0;">
+        <div class="d-flex align-items-center gap-3">
+            <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white" style="width: 44px; height: 44px; background: linear-gradient(135deg, #0f766e, #38bdf8); font-size: 1rem;">
+                {{ request.user.first_name|first|upper }}
+            </div>
+            <div>
+                <div class="fw-bold" style="color: #0f172a;">{{ owner.first_name }} {{ owner.last_name }}</div>
+                <div class="small text-muted">{{ owner.phone|default:"ยังไม่ระบุเบอร์" }} &nbsp;|&nbsp; รหัส: {{ owner.customer_id }}</div>
+            </div>
+        </div>
+        <a href="{% url 'client_profile' %}" class="btn btn-sm fw-semibold" style="border-radius: 10px; background: white; border: 1px solid #e2e8f0; color: #64748b;">
+            <i class="fas fa-user-edit me-1"></i>แก้ไขข้อมูลส่วนตัว
+        </a>
+    </div>
+
+    
+    <div class="card border-0 shadow-sm" style="border-radius: 20px;">
+        <div class="card-body p-4 p-md-5">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                
+                <div class="d-none">
+                    {{ form.customer_id }}
+                    {{ form.microchip_number }}
+                    {{ form.price_level }}
+                    {{ form.owner_first_name }}
+                    {{ form.owner_last_name }}
+                    {{ form.owner_address_1 }}
+                    {{ form.owner_address_2 }}
+                    {{ form.owner_phone }}
+                </div>
+
+                <div class="row g-5">
+                    
+                    <div class="col-xl-8">
+                        <h5 class="fw-bold mb-3 d-flex align-items-center" style="color: #334155;">
+                            <div class="bg-success bg-opacity-10 text-success rounded-circle d-flex justify-content-center align-items-center me-2" style="width: 32px; height: 32px; font-size: 0.9rem;">1</div>
+                            ข้อมูลสัตว์เลี้ยง (Pet)
+                        </h5>
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <label class="form-label text-muted fw-semibold small">ชื่อสัตว์เลี้ยง <span class="text-danger">*</span></label>
+                                {{ form.name }}
+                                {% if form.name.errors %}
+                                <div class="text-danger small mt-1"><i class="fas fa-exclamation-circle me-1"></i>{{ form.name.errors|striptags }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label d-block text-muted fw-semibold small">เพศ (Gender)</label>
+                                <div class="d-flex gap-5 align-items-center pt-2">
+                                    {% for radio in form.sex %}
+                                        {% if radio.choice_label and '----' not in radio.choice_label %}
+                                        <div class="form-check custom-radio me-2">
+                                            {{ radio.tag }}
+                                            <label class="form-check-label fw-bold" for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
+                                        </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label text-muted fw-semibold small">ประเภทสัตว์ (Species)</label>
+                                {{ form.species }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label text-muted fw-semibold small">สายพันธุ์ (Breed)</label>
+                                {{ form.breed }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label text-muted fw-semibold small">วันเกิด (Birth Date)</label>
+                                {{ form.birth_date }}
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label text-muted fw-semibold small">หมายเหตุ / ข้อมูลเพิ่มเติม</label>
+                                {{ form.remarks }}
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div class="col-xl-4 text-center">
+                        <div class="p-4 rounded-4 h-100 d-flex flex-column align-items-center justify-content-center" style="background-color: #f8fafc; border: 1px dashed #cbd5e1;">
+                            <h6 class="fw-bold mb-4" style="color: #334155;">
+                                <i class="fas fa-image text-muted me-2"></i> รูปภาพสัตว์เลี้ยง
+                            </h6>
+                            
+                            
+                            <div class="profile-upload-wrapper">
+                                <div class="profile-pic-container" id="profile-container">
+                                    <img id="image-preview" src="https://ui-avatars.com/api/?name=Pet&background=e2e8f0&color=64748b&size=150" alt="Pet Profile">
+                                </div>
+                                <div class="upload-btn" id="upload-btn-trigger">
+                                    <i class="fas fa-camera"></i>
+                                </div>
+                            </div>
+                            
+                            
+                            <div class="d-none">
+                                {{ form.image }}
+                            </div>
+                            
+                            <p class="small text-muted mt-4 mb-0 opacity-75">คลิกที่ไอคอนกล้องเพื่อปรับแต่งรูปภาพ</p>
+                            
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-3 mt-5 pt-4 border-top">
+                    <a href="{% url 'client_dashboard' %}" class="btn btn-light px-5 fw-bold" style="border-radius: 12px; color: #64748b;">ยกเลิก</a>
+                    <button type="submit" class="btn btn-success px-5 py-2 fw-bold" style="border-radius: 12px; box-shadow: 0 4px 12px rgba(15, 118, 110, 0.2);">
+                        <i class="fas fa-save me-2"></i>บันทึกประวัติสัตว์เลี้ยง
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade modal-cropper" id="cropperModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0" style="border-radius: 20px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+            <div class="modal-header bg-light border-0 px-4 py-3">
+                <h5 class="modal-title fw-bold" style="color: #0f766e;">
+                    <i class="fas fa-crop-alt me-2"></i>ปรับแต่งรูปโปรไฟล์สัตว์เลี้ยง
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 bg-white">
+                <div class="cropper-container-wrapper mb-3">
+                    <img id="cropper-image" src="" alt="Cropper" style="max-width: 100%; display: block;">
+                </div>
+                
+                
+                <div class="editor-controls bg-light p-3 rounded-3 mt-3">
+                    <div class="row align-items-center g-3">
+                        <div class="col-md-7">
+                            <label class="form-label small fw-bold text-muted mb-1"><i class="fas fa-search-plus me-1"></i>ซูม (Zoom)</label>
+                            <input type="range" class="form-range" id="zoom-range" min="0" max="3" step="0.1" value="0">
+                        </div>
+                        <div class="col-md-5 text-end">
+                            <label class="form-label small fw-bold text-muted mb-1 d-block"><i class="fas fa-sync-alt me-1"></i>หมุน (Rotate)</label>
+                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-circle me-1" id="rotate-left" style="width: 35px; height: 35px;">
+                                <i class="fas fa-undo"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-circle" id="rotate-right" style="width: 35px; height: 35px;">
+                                <i class="fas fa-redo"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light border-0 px-4 py-3">
+                <button type="button" class="btn btn-light fw-bold px-4" data-bs-dismiss="modal" style="border-radius: 10px;">ยกเลิก</button>
+                <button type="button" class="btn btn-success fw-bold px-4" id="crop-and-save" style="border-radius: 10px; background-color: #0f766e;">
+                    <i class="fas fa-check-circle me-2"></i>บันทึกและครอบตัด
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Image UI references
+        const imageInput = document.querySelector('input[type="file"]');
+        const imagePreview = document.getElementById('image-preview');
+        const uploadBtnTrigger = document.getElementById('upload-btn-trigger');
+        
+        // Setup Modal and Cropper
+        const cropperModalEl = document.getElementById('cropperModal');
+        const cropperModal = new bootstrap.Modal(cropperModalEl);
+        const cropperImage = document.getElementById('cropper-image');
+        let cropper = null;
+
+        // Tool variables
+        const zoomRange = document.getElementById('zoom-range');
+        const btnRotateLeft = document.getElementById('rotate-left');
+        const btnRotateRight = document.getElementById('rotate-right');
+        const btnCropAndSave = document.getElementById('crop-and-save');
+
+        // Allow styling the original input
+        if (imageInput) {
+            imageInput.classList.add('form-control-sm');
+        }
+
+        // Camera button triggers native <input type="file">
+        uploadBtnTrigger.addEventListener('click', () => {
+            if(imageInput) imageInput.click();
+        });
+
+        // 1. Detect file upload hook
+        if (imageInput) {
+            imageInput.addEventListener('change', function(e) {
+                // Ignore events emitted by our cropping script itself
+                if(e.detail && e.detail.fromCropper) return;
+                
+                if (e.target.files && e.target.files[0]) {
+                    const file = e.target.files[0];
+                    if(!file.type.match('image.*')) {
+                        alert('กรุณาเลือกไฟล์ภาพเท่านั้น (JPG, PNG)');
+                        return;
+                    }
+
+                    // Open Image with FileReader inside Cropper Modal
+                    const reader = new FileReader();
+                    reader.onload = function(evt) {
+                        cropperImage.src = evt.target.result;
+                        cropperModal.show();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        // 2. Init Cropper.js when fully visible
+        cropperModalEl.addEventListener('shown.bs.modal', function () {
+            if (cropper) {
+                cropper.destroy();
+            }
+
+            // Create circular mask in UI visually
+            const setCircleMask = () => {
+                const viewBox = document.querySelector('.cropper-view-box');
+                const face = document.querySelector('.cropper-face');
+                if (viewBox) viewBox.style.borderRadius = '50%';
+                if (face) face.style.backgroundColor = 'transparent';
+            };
+
+            cropper = new Cropper(cropperImage, {
+                aspectRatio: 1, // Fixed 1:1 for perfect circle output
+                viewMode: 1, // Restrict bounds
+                dragMode: 'move', // Panning instead of creating multiple boxes
+                autoCropArea: 0.9,
+                restore: false,
+                guides: false, // Turn off grid
+                center: false,
+                highlight: false, // Turn off dark overlay outside selection
+                cropBoxMovable: false, // Freeze crop box
+                cropBoxResizable: false, // Freeze aspect layout
+                toggleDragModeOnDblclick: false,
+                ready: function () {
+                    setCircleMask();
+                    zoomRange.value = 0.5; // Custom default
+                }
+            });
+        });
+
+        // Clean up Cropper on hide
+        cropperModalEl.addEventListener('hidden.bs.modal', function () {
+            if (cropper) {
+                cropper.destroy();
+                cropper = null;
+            }
+        });
+
+        // 3. Cropping Interaction Tools
+        zoomRange.addEventListener('input', function() {
+            if(cropper) {
+                // Cropper.js handles direct ratio. 0.1 is minimum zoom to scale upward
+                const minScale = 0.5;
+                cropper.zoomTo(Math.max(minScale, parseFloat(this.value))); 
+            }
+        });
+        
+        cropperImage.addEventListener('zoom', function(e) {
+             // Synchronize wheel zooming to UI slider 
+            if (e.detail.ratio) {
+                zoomRange.value = e.detail.ratio;
+            }
+        });
+
+        btnRotateLeft.addEventListener('click', function() {
+            if(cropper) cropper.rotate(-90);
+        });
+        
+        btnRotateRight.addEventListener('click', function() {
+            if(cropper) cropper.rotate(90);
+        });
+
+        // 4. Accept Cropped Image and send to standard hidden Form Field
+        btnCropAndSave.addEventListener('click', function() {
+            if (!cropper) return;
+            
+            // Build the final cut
+            const canvas = cropper.getCroppedCanvas({
+                width: 400, // Export resolution
+                height: 400,
+                fillColor: '#fff', 
+                imageSmoothingEnabled: true,
+                imageSmoothingQuality: 'high',
+            });
+
+            // Set main UI thumbnail
+            imagePreview.src = canvas.toDataURL('image/jpeg', 0.9);
+
+            // MAGIC PART - Re-inject into Django Form naturally
+            canvas.toBlob(function(blob) {
+                const dt = new DataTransfer();
+                // Create native File. Note this forces jpeg format which avoids transparent PNG overlaps
+                const compiledImg = new File([blob], "pet_profile_" + Date.now() + ".jpg", { 
+                    type: "image/jpeg", 
+                    lastModified: Date.now() 
+                });
+                dt.items.add(compiledImg);
+                
+                if (imageInput) {
+                    // Update input form programatically
+                    imageInput.files = dt.files;
+                    imageInput.dispatchEvent(new CustomEvent('change', { detail: { fromCropper: true } }));
+                }
+                
+                cropperModal.hide();
+            }, 'image/jpeg', 0.9);
+        });
+    });
+</script>
+{% endblock %}

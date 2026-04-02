@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="th" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Pet Clinic Dashboard Admin 2026{% endblock %}</title>
+    
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --sidebar-width: 260px;
+            --primary-navy: #0f172a;
+            --sidebar-glass: rgba(15, 23, 42, 0.85);
+            --bg-body: #f1f5f9;
+            --card-bg: #ffffff;
+            --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+            --input-bg: #ffffff;
+            --text-heading: #0f172a;
+            --text-muted: #64748b;
+            --border-color: rgba(0, 0, 0, 0.05);
+            --badge-bg: #f1f8f1;
+            --badge-color: #2e7d32;
+        }
+
+        [data-bs-theme="dark"] {
+            --bg-body: #0b0f19; /* Deep Black-Navy */
+            --primary-navy: #1e293b; /* Sidebar Slate */
+            --sidebar-glass: rgba(15, 23, 42, 0.95);
+            --card-bg: #1e293b; /* Slate Navy Card */
+            --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+            --input-bg: #0f172a; /* Deep Navy Input */
+            --text-heading: #f1f5f9; /* Bright White-Grey */
+            --text-muted: #94a3b8; /* Soft Slate */
+            --border-color: rgba(255, 255, 255, 0.08);
+            --badge-bg: rgba(16, 185, 129, 0.1);
+            --badge-color: #10b981; /* Emerald Green */
+        }
+
+        /* ----- Global Dark Mode Fixes (UX/UI Refined) ----- */
+        [data-bs-theme="dark"] .text-dark {
+            color: var(--text-heading) !important;
+        }
+        [data-bs-theme="dark"] .bg-white {
+            background-color: var(--card-bg) !important;
+            border-color: var(--border-color) !important;
+        }
+        [data-bs-theme="dark"] .bg-light {
+            background-color: rgba(15, 23, 42, 0.6) !important;
+            color: var(--text-heading);
+            border: 1px solid var(--border-color);
+        }
+        [data-bs-theme="dark"] .text-muted {
+            color: var(--text-muted) !important;
+        }
+        [data-bs-theme="dark"] .form-control, 
+        [data-bs-theme="dark"] .form-select,
+        [data-bs-theme="dark"] .input-group-text {
+            background-color: var(--input-bg) !important;
+            color: var(--text-heading) !important;
+            border: 1px solid var(--border-color) !important;
+        }
+        [data-bs-theme="dark"] .form-control:focus {
+            border-color: var(--badge-color) !important;
+            box-shadow: 0 0 0 0.25rem rgba(16, 185, 129, 0.25) !important;
+        }
+        [data-bs-theme="dark"] .table {
+            color: var(--text-heading);
+            border-color: var(--border-color);
+        }
+        [data-bs-theme="dark"] .table-light {
+            background-color: rgba(255,255,255,0.05) !important;
+            color: var(--badge-color);
+        }
+        
+        /* Slim Dark Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        [data-bs-theme="light"] ::-webkit-scrollbar-thumb { background: #cbd5e1; }
+
+        body {
+            font-family: 'Kanit', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--bs-body-color);
+            transition: background-color 0.3s ease, color 0.3s ease;
+            overflow-x: hidden;
+        }
+
+        /* Top Navbar */
+        .navbar-top {
+            background: transparent;
+            padding: 1rem 2rem;
+            margin-left: var(--sidebar-width);
+            transition: margin-left 0.3s ease;
+        }
+
+        /* Slim Glass Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: var(--sidebar-glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            padding: 1.5rem 1rem;
+            z-index: 1040;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-brand {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #fff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            margin-bottom: 2.5rem;
+            padding-left: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .sidebar-brand i {
+            color: #38bdf8;
+        }
+
+        .nav-sidebar .nav-item {
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-sidebar .nav-link {
+            color: #cbd5e1; /* Improved contrast for Dark UI */
+            border-radius: 10px;
+            padding: 0.8rem 1.2rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .nav-sidebar .nav-link i {
+            width: 24px;
+            font-size: 1.1rem;
+            margin-right: 12px;
+            color: #94a3b8; /* Dimmer but clear icon */
+            transition: all 0.3s ease;
+        }
+
+        .nav-sidebar .nav-link:hover, .nav-sidebar .nav-link.active {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.15); /* Slightly brighter hover */
+            transform: translateX(5px);
+        }
+
+        .nav-sidebar .nav-link:hover i, .nav-sidebar .nav-link.active i {
+            color: #38bdf8;
+        }
+
+        /* Main Content wrapper */
+        .main-wrapper {
+            margin-left: {% if request.user.is_authenticated %}var(--sidebar-width){% else %}0{% endif %};
+            padding: {% if request.user.is_authenticated %}1rem 2rem 3rem 2rem{% else %}0{% endif %};
+            min-height: 100vh;
+            transition: margin-left 0.3s ease;
+        }
+
+        /* Adjustments for non-authenticated pages */
+        {% if not request.user.is_authenticated %}
+        .navbar-top { margin-left: 0; display: none !important; }
+        body { background: #f8fafc; }
+        {% endif %}
+
+        /* Widget & Controls */
+        .glass-widget {
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+            border-radius: 20px;
+            padding: 8px 16px;
+        }
+
+        [data-bs-theme="dark"] .glass-widget {
+            background: rgba(30,41,59,0.7);
+            border-color: rgba(255,255,255,0.05);
+        }
+
+        /* Cards override for dashboard */
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        /* Responsive */
+        @media (max-width: 991.98px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            .main-wrapper, .navbar-top {
+                margin-left: 0;
+            }
+        }
+        
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    {% if request.user.is_authenticated %}
+    
+    <aside class="sidebar d-flex flex-column" id="sidebar">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+            <a href="{% url 'dashboard' %}" class="sidebar-brand">
+                <i class="fas fa-paw me-2"></i> VetCare
+            </a>
+            <button class="btn btn-link text-white d-lg-none" id="sidebarCloseBtn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <ul class="nav flex-column nav-sidebar w-100">
+            
+            <li class="nav-item">
+                <a class="nav-link {% if request.path == '/' or '/dashboard' in request.path %}active{% endif %}" href="{% url 'dashboard' %}">
+                    <i class="fas fa-chart-pie"></i> ภาพรวมระบบ
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if '/owners' in request.path %}active{% endif %}" href="{% url 'owner_list' %}">
+                    <i class="fas fa-users"></i> รายชื่อเจ้าของสัตว์
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if '/pets' in request.path %}active{% endif %}" href="{% url 'pet_list' %}">
+                    <i class="fas fa-dog"></i> สัตว์เลี้ยง
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if '/appointments' in request.path %}active{% endif %}" href="{% url 'appointment_list' %}">
+                    <i class="far fa-calendar-alt"></i> การนัดหมาย
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if '/medical-records' in request.path %}active{% endif %}" href="{% url 'medical_record_list' %}">
+                    <i class="fas fa-notes-medical"></i> ประวัติการรักษา
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if '/medicines' in request.path %}active{% endif %}" href="{% url 'medicine_list' %}">
+                    <i class="fas fa-pills"></i> คลังยาและเวชภัณฑ์
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if '/vets' in request.path %}active{% endif %}" href="{% url 'vet_list' %}">
+                    <i class="fas fa-user-md"></i> ทีมสัตวแพทย์
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if '/pos' in request.path %}active{% endif %}" href="{% url 'pos' %}">
+                    <i class="fas fa-cash-register"></i> ชำระเงิน / POS
+                </a>
+            </li>
+            {% if request.user.is_superuser %}
+            <li class="nav-item">
+                <a class="nav-link {% if '/users' in request.path %}active{% endif %}" href="{% url 'admin_user_management' %}" style="color: #fbbf24;">
+                    <i class="fas fa-crown"></i> จัดการยศ/สิทธิ์
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if '/sql-dashboard' in request.path %}active{% endif %}" href="{% url 'sql_clinic_dashboard' %}" style="color: #38bdf8;">
+                    <i class="fas fa-database"></i> SQL Dashboard (ขั้นสูง)
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+        
+        <div class="mt-auto">
+            <hr class="border-secondary opacity-25">
+            <div class="d-flex align-items-center ps-2 py-2">
+                <div class="bg-primary bg-gradient text-white rounded-circle d-flex justify-content-center align-items-center fw-bold me-3 shadow-sm" style="width: 40px; height: 40px;">
+                    {{ request.user.username|make_list|first|upper }}
+                </div>
+                <div class="ms-1">
+                    <div class="fw-bold" style="font-size: 0.9rem;">
+                        {% if request.user.first_name %}{{ request.user.first_name }}{% else %}{{ request.user.username }}{% endif %}
+                    </div>
+                    <div class="text-secondary small">
+                        {% if request.user.is_superuser %}
+                            <span style="color: #fbbf24;"><i class="fas fa-crown me-1"></i>แอดมิน (Admin)</span>
+                        {% elif request.user.is_staff %}
+                            <span style="color: #38bdf8;"><i class="fas fa-user-shield me-1"></i>พนักงาน (Staff)</span>
+                        {% else %}
+                            <span style="color: #86efac;"><i class="fas fa-user me-1"></i>ผู้ใช้งานทั่วไป (Normal Client)</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <form action="{% url 'logout' %}" method="post" class="mt-4 px-2">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger w-100 rounded-pill py-2 shadow-sm border-0 fw-bold" style="background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);">
+                    <i class="fas fa-sign-out-alt me-2"></i>ออกจากระบบ
+                </button>
+            </form>
+        </div>
+    </aside>
+    {% endif %}
+
+    {% if request.user.is_authenticated %}
+    
+    <header class="navbar-top d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center">
+            <button class="btn btn-light d-lg-none shadow-sm rounded-circle me-3" id="sidebarToggleBtn" style="width: 40px; height: 40px;">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        
+        <div class="d-flex align-items-center gap-3">
+            
+            <div class="glass-widget d-flex align-items-center me-3 border-0 shadow-sm" style="background: rgba(255,255,255,0.9); padding: 5px 15px;">
+                <img src="/media/logo_images/new_logo_spu.png" alt="University Logo" style="height: 28px;" class="me-2">
+                <div class="fw-bold text-dark d-none d-xl-block" style="font-size: 0.8rem; border-left: 2px solid #ddd; padding-left: 10px; line-height: 1.2;">
+                    คณะเทคโนโลยีสารสนเทศ<br>
+                    <span class="text-primary small" style="font-size: 0.65rem;">มหาวิทยาลัยศรีปทุม</span>
+                </div>
+            </div>
+
+            
+            <div class="glass-widget d-none d-md-flex align-items-center">
+                <i class="fas fa-sun text-warning me-2 fs-5"></i>
+                <div>
+                    <div class="fw-bold" style="font-size: 0.85rem;" id="datetimeWidget">Loading...</div>
+                    <div class="text-muted" style="font-size: 0.75rem;">สภาพอากาศแจ่มใส 28°C</div>
+                </div>
+            </div>
+        </div>
+    </header>
+    {% endif %}
+
+    
+    <main class="main-wrapper">
+        <div class="container-fluid px-0">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show rounded-4 border-0 shadow-sm" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Force light theme and remove any saved dark mode pref
+        localStorage.removeItem('theme');
+        document.documentElement.setAttribute('data-bs-theme', 'light');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Realtime datetime widget
+            const dtWidget = document.getElementById('datetimeWidget');
+            if (dtWidget) {
+                const updateTime = () => {
+                    const now = new Date();
+                    const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' };
+                    dtWidget.textContent = now.toLocaleDateString('th-TH', options);
+                };
+                updateTime();
+                setInterval(updateTime, 60000);
+            }
+
+            // Mobile Sidebar Toggle
+            const sidebarBtn = document.getElementById('sidebarToggleBtn');
+            const sidebarClose = document.getElementById('sidebarCloseBtn');
+            const sidebar = document.getElementById('sidebar');
+
+            if (sidebarBtn && sidebar) {
+                sidebarBtn.addEventListener('click', () => {
+                    sidebar.classList.add('show');
+                });
+            }
+            if (sidebarClose && sidebar) {
+                sidebarClose.addEventListener('click', () => {
+                    sidebar.classList.remove('show');
+                });
+            }
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
