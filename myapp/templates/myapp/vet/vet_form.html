@@ -1,0 +1,255 @@
+{% extends 'myapp/core/base.html' %}
+
+{% block title %}ทะเบียนแพทย์สัตว์{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+    <div class="card shadow-lg border-0" style="border-radius: 20px; overflow: hidden; background: var(--card-bg);">
+        
+        <div class="card-header font-weight-bold" style="background-color: #d1fae5; border-bottom: 3px solid #10b981; border-left: 6px solid #059669;">
+            <h4 class="mb-0 py-2" style="color: #064e3b; font-weight: 800;">
+                <i class="fas fa-stethoscope me-2"></i>ทะเบียนแพทย์สัตว์ (Veterinarian Registration)
+            </h4>
+        </div>
+
+        <div class="card-body p-4" style="background-color: var(--card-bg);">
+            <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                {% csrf_token %}
+
+                
+                <div class="row align-items-end mb-4 p-3 border rounded-4 shadow-sm stats-row">
+                    <div class="col-md-4">
+                        <label class="form-label text-primary fw-bold small mb-1"><i class="fas fa-id-card me-1"></i> รหัสแพทย์ (Doctor ID)</label>
+                        {{ form.doctor_id }}
+                    </div>
+                    <div class="col-md-4 border-start border-primary border-opacity-10">
+                        <label class="form-label text-primary fw-bold small mb-1"><i class="fas fa-file-contract me-1"></i> เลขที่ใบอนุญาต (License No.)</label>
+                        {{ form.license_no }}
+                    </div>
+                    <div class="col-md-4 border-start border-primary border-opacity-10">
+                        <label class="form-label text-primary fw-bold small mb-1"><i class="fas fa-medal me-1"></i> ระดับตำแหน่ง</label>
+                        {{ form.role_level }}
+                    </div>
+                </div>
+
+                
+                <div class="row g-4 mb-4">
+                    
+                    <div class="col-md-8">
+                         
+                        <h5 class="text-primary border-bottom border-primary border-2 pb-2 mb-3 fw-bold"><i class="fas fa-user-md me-2"></i>ข้อมูลแพทย์ (Doctor Details)</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label text-muted-custom fw-bold small mb-1">ชื่อ (First Name)</label>
+                                {{ form.first_name }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-muted-custom fw-bold small mb-1">นามสกุล (Last Name)</label>
+                                {{ form.last_name }}
+                            </div>
+                        </div>
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <label class="form-label text-muted-custom fw-bold small mb-1">🪪 เลขประจำตัวประชาชน (National ID)</label>
+                                {{ form.national_id }}
+                            </div>
+                        </div>
+
+                        
+                        <h5 class="text-primary border-bottom border-primary border-2 pb-2 mb-3 fw-bold"><i class="fas fa-briefcase me-2"></i>ข้อมูลวิชาชีพ (Professional Details)</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label text-muted-custom fw-bold small mb-1">🔬 สาขาความเชี่ยวชาญ</label>
+                                {{ form.specialization }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-muted-custom fw-bold small mb-1">📅 วันหมดอายุใบอนุญาต</label>
+                                {{ form.license_expiry }}
+                            </div>
+                        </div>
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label text-muted-custom fw-bold small mb-1">🎓 วุฒิการศึกษา</label>
+                                {{ form.degree }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-muted-custom fw-bold small mb-1">🏫 มหาวิทยาลัย</label>
+                                {{ form.university }}
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div class="col-md-4">
+                        <h5 class="text-primary border-bottom border-primary border-2 pb-2 mb-3 fw-bold text-center"><i class="fas fa-camera me-2"></i>รูปถ่ายแพทย์</h5>
+                            <div class="image-upload-wrapper">
+                                {% if form.instance.image %}
+                                    <div class="current-image-container mb-3 position-relative">
+                                        <img id="vet-preview" src="{{ form.instance.image.url }}" class="img-fluid rounded-3 shadow-lg" style="max-height:180px; object-fit:cover; width: 100%;" alt="vet photo">
+                                        <div id="clear-overlay" class="position-absolute top-0 start-0 w-100 h-100 d-none bg-dark bg-opacity-50 d-flex align-items-center justify-content-center rounded-3">
+                                            <span class="text-white fw-bold"><i class="fas fa-trash-alt me-2"></i>จะถูกลบเมื่อบันทึก</span>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <div id="vet-placeholder" class="d-flex align-items-center justify-content-center bg-secondary bg-opacity-10 rounded-3 mb-3 shadow-sm" style="height:180px; font-size:60px; border: 2px dashed #e2e8f0;">
+                                        <i class="fas fa-user-md text-primary opacity-25"></i>
+                                    </div>
+                                    <img id="vet-preview" src="#" class="img-fluid rounded-3 mb-3 d-none shadow-lg" style="max-height:180px; object-fit:cover; width: 100%;" alt="vet photo">
+                                {% endif %}
+                                
+                                <div class="custom-file-input-group text-start">
+                                    {{ form.image }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                
+                <h5 class="text-primary border-bottom border-primary border-2 pb-2 mb-4 mt-2 fw-bold"><i class="fas fa-address-book me-2"></i>ข้อมูลติดต่อ (Contact Details)</h5>
+                
+                <div class="mb-4 pb-2">
+                    <label class="form-label text-muted-custom fw-bold small mb-2">ที่อยู่ บรรทัดที่ 1</label>
+                    {{ form.address_1 }}
+                </div>
+                
+                <div class="mb-4 pb-2">
+                    <label class="form-label text-muted-custom fw-bold small mb-2">ที่อยู่ บรรทัดที่ 2</label>
+                    {{ form.address_2 }}
+                </div>
+                
+                <div class="row g-4 mb-4 pb-2">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted-custom fw-bold small mb-2">📱 เบอร์มือถือ (Mobile)</label>
+                        {{ form.phone }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted-custom fw-bold small mb-2">✉️ อีเมล (Email)</label>
+                        {{ form.email }}
+                    </div>
+                </div>
+
+                
+                <h5 class="text-primary border-bottom border-primary border-2 pb-2 mb-4 mt-5 fw-bold"><i class="fas fa-calendar-alt me-2"></i>ตารางปฏิบัติงาน (Working Hours)</h5>
+                <div class="mb-4">
+                    {{ form.working_hours }}
+                </div>
+
+                
+                <div class="mb-4 mt-5">
+                    <label class="form-label text-muted-custom fw-bold small mb-2">📝 หมายเหตุ (Remarks)</label>
+                    {{ form.remarks }}
+                </div>
+
+                
+                <div class="d-flex justify-content-end gap-2 mt-4 pt-4 border-top">
+                    <a href="{% url 'vet_list' %}" class="btn btn-danger px-5 fw-bold rounded-pill"><i class="fas fa-times me-2"></i> ยกเลิก</a>
+                    <button type="submit" class="btn btn-success px-5 fw-bold rounded-pill"><i class="fas fa-save me-2"></i> บันทึก</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Universal Colors that adapt to Light/Dark */
+    .text-muted-custom { color: #64748b !important; }
+    .text-white-custom { color: #1e293b !important; }
+    
+    [data-bs-theme="dark"] .text-muted-custom { color: #94a3b8 !important; }
+    [data-bs-theme="dark"] .text-primary { color: #60a5fa !important; }
+    [data-bs-theme="dark"] .border-primary { border-color: #3b82f6 !important; }
+    [data-bs-theme="dark"] .form-label { color: #cbd5e1 !important; }
+
+    /* Fix hardcoded Light Mode Body */
+    .card-body { background-color: #ffffff !important; }
+    [data-bs-theme="dark"] .card-body { background-color: var(--card-bg) !important; }
+
+    .stats-row { background: #f8fafc; border: 1px solid #e2e8f0; }
+    [data-bs-theme="dark"] .stats-row { background: var(--input-bg) !important; border-color: var(--border-color) !important; }
+
+    /* Input styling */
+    .form-control, .form-select {
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 0.6rem 1rem;
+        background-color: var(--input-bg);
+        color: var(--text-heading);
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.25);
+    }
+
+    /* Custom File Input Styling for Django ClearableFileInput */
+    .custom-file-input-group {
+        font-size: 0.85rem;
+        color: #64748b;
+    }
+    .custom-file-input-group input[type="file"] {
+        margin-top: 5px;
+    }
+    .custom-file-input-group label[for="image-clear_id"] {
+        color: #dc3545;
+        font-weight: bold;
+        cursor: pointer;
+        padding: 2px 8px;
+        border-radius: 5px;
+        background: #fff5f5;
+        border: 1px solid #feb2b2;
+        margin-left: 5px;
+        transition: all 0.2s;
+    }
+    .custom-file-input-group label[for="image-clear_id"]:hover {
+        background: #fee2e2;
+    }
+    .custom-file-input-group input[type="checkbox"] {
+        cursor: pointer;
+        width: 16px;
+        height: 16px;
+        vertical-align: middle;
+        margin-right: 4px;
+    }
+</style>
+
+<script>
+// Preview Image logic
+document.querySelector('input[name="image"]').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+            const preview = document.getElementById('vet-preview');
+            const placeholder = document.getElementById('vet-placeholder');
+            const overlay = document.getElementById('clear-overlay');
+            
+            preview.src = ev.target.result;
+            preview.classList.remove('d-none');
+            preview.style.opacity = "1";
+            if (placeholder) placeholder.classList.add('d-none');
+            if (overlay) overlay.classList.add('d-none');
+            
+            // Uncheck the clear checkbox if a new file is chosen
+            const clearCheckbox = document.getElementById('image-clear_id');
+            if (clearCheckbox) clearCheckbox.checked = false;
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+// Clear Checkbox logic
+const clearCheckbox = document.getElementById('image-clear_id');
+if (clearCheckbox) {
+    clearCheckbox.addEventListener('change', function() {
+        const preview = document.getElementById('vet-preview');
+        const overlay = document.getElementById('clear-overlay');
+        if (this.checked) {
+            if (preview) preview.style.opacity = "0.3";
+            if (overlay) overlay.classList.remove('d-none');
+        } else {
+            if (preview) preview.style.opacity = "1";
+            if (overlay) overlay.classList.add('d-none');
+        }
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,191 @@
+{% extends 'myapp/core/base.html' %}
+
+{% block title %}จัดการสิทธิ์ผู้ใช้งาน - Admin Backend{% endblock %}
+
+{% block extra_css %}
+<style>
+    .user-card {
+        border-radius: 15px;
+        transition: transform 0.2s;
+        border: 1px solid var(--border-color);
+        background: var(--card-bg);
+    }
+    .user-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--card-shadow);
+    }
+    .badge-staff {
+        background-color: rgba(14, 165, 233, 0.15);
+        color: #0ea5e9;
+        font-weight: 600;
+    }
+    .badge-admin {
+        background-color: rgba(244, 63, 94, 0.15);
+        color: #f43f5e;
+        font-weight: 600;
+    }
+    .badge-user {
+        background-color: rgba(100, 116, 139, 0.1);
+        color: #64748b;
+    }
+    .table-container {
+        background: var(--card-bg);
+        border-radius: 20px;
+        padding: 20px;
+        box-shadow: var(--card-shadow);
+        border: 1px solid var(--border-color);
+    }
+    .search-bar {
+        border-radius: 100px;
+        padding-left: 20px;
+        border: 1px solid var(--border-color);
+        background: var(--input-bg);
+    }
+    
+    /* Responsive Table to Card layout */
+    @media (max-width: 768px) {
+        .table-container { padding: 10px; background: transparent; border: none; box-shadow: none; }
+        .table-container .table-responsive { overflow: visible; }
+        .mobile-card-list thead { display: none; }
+        .mobile-card-list tbody, .mobile-card-list tr, .mobile-card-list td { display: block; width: 100%; }
+        .mobile-card-list tr {
+            margin-bottom: 1rem; border: 1px solid var(--border-color) !important;
+            border-radius: 15px; padding: 15px; background: var(--card-bg); box-shadow: var(--card-shadow);
+        }
+        .mobile-card-list td {
+            text-align: right; padding: 8px 5px !important; border-bottom: 1px dashed var(--border-color);
+            display: flex; justify-content: space-between; align-items: center; margin-top: 5px;
+            background-color: transparent !important; /* Disable hover bg */
+        }
+        .mobile-card-list.table-hover > tbody > tr:hover > td,
+        .mobile-card-list.table-hover > tbody > tr:hover > th {
+            box-shadow: none !important;
+            background-color: transparent !important;
+        }
+        .mobile-card-list td:last-child { border-bottom: 0; justify-content: flex-end; }
+        .mobile-card-list td::before {
+            content: attr(data-label); font-weight: bold; color: var(--text-muted); text-align: left; margin-right: 10px;
+            font-size: 0.85rem;
+        }
+        .mobile-card-list td.item-main {
+            display: flex; justify-content: flex-start; text-align: left;
+            border-bottom: 1px solid var(--border-color); padding-bottom: 15px !important; margin-bottom: 10px;
+        }
+        .mobile-card-list td.item-main::before { display: none; }
+        .mobile-card-list td.item-main .d-flex { width: 100%; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">👑 จัดการยศและสิทธิ์ผู้ใช้งาน</h2>
+            <p class="text-muted mb-0">เฉพาะแอดมินเท่านั้นที่สามารถจัดการส่วนนี้ได้</p>
+        </div>
+        
+        <form method="GET" class="d-flex w-100 w-md-auto gap-2">
+            <input type="text" name="q" value="{{ q }}" class="form-control search-bar flex-grow-1" placeholder="ค้นหาชื่อ, อีเมล..." style="max-width: 100%;">
+            <button type="submit" class="btn btn-primary rounded-pill px-4 text-nowrap">ค้นหา</button>
+        </form>
+    </div>
+
+    
+    <div class="table-container fade-in">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 mobile-card-list">
+                <thead class="table-light text-nowrap">
+                    <tr>
+                        <th class="ps-4">ชื่อผู้ใช้งาน / อีเมล</th>
+                        <th>ชื่อ-นามสกุล</th>
+                        <th>สถานะปัจจุบัน</th>
+                        <th class="text-center">จัดการยศ (Staff)</th>
+                        <th class="text-center">จัดการสิทธิ์ (แอดมิน)</th>
+                        <th class="text-center">ตัวเลือก</th>
+                        <th class="text-end pe-4">วันที่สมัคร</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in users %}
+                    <tr>
+                        <td class="ps-md-4 item-main" data-label="">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center me-3 shadow-sm flex-shrink-0" style="width: 45px; height: 45px; font-size: 1.2rem; font-weight: bold;">
+                                    {{ u.username|make_list|first|upper }}
+                                </div>
+                                <div>
+                                    <div class="fw-bold mb-1 fs-6 text-wrap">{{ u.username }}</div>
+                                    <div class="small text-muted text-wrap"><i class="fas fa-envelope me-1 opacity-50"></i>{{ u.email }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td data-label="ชื่อ-นามสกุล:" class="d-none d-md-table-cell text-start">
+                            <span class="fw-semibold">{{ u.first_name }} {{ u.last_name|default:"" }}</span>
+                        </td>
+                        <td data-label="สถานะ:">
+                            {% if u.is_superuser %}
+                                <span class="badge badge-admin rounded-pill px-3 py-2">
+                                    <i class="fas fa-crown me-1"></i> แอดมิน (Admin)
+                                </span>
+                            {% elif u.is_staff %}
+                                <span class="badge badge-staff rounded-pill px-3 py-2">
+                                    <i class="fas fa-user-shield me-1"></i> พนักงาน (Staff)
+                                </span>
+                            {% else %}
+                                <span class="badge badge-user rounded-pill px-3 py-2">
+                                    <i class="fas fa-user me-1"></i> ผู้ใช้งานทั่วไป (Normal Client)
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end text-md-center" data-label="มอบหมาย พนักงาน:">
+                            <a href="{% url 'admin_user_toggle_status' u.id 'staff' %}" 
+                               class="btn {% if u.is_staff %}btn-outline-danger{% else %}btn-outline-primary{% endif %} btn-sm rounded-pill px-3">
+                                {% if u.is_staff %}
+                                    <i class="fas fa-user-minus me-1"></i> ปลดพนักงาน
+                                {% else %}
+                                    <i class="fas fa-user-plus me-1"></i> ตั้งเป็นพนักงาน
+                                {% endif %}
+                            </a>
+                        </td>
+                        <td class="text-end text-md-center" data-label="สิทธิ์ Admin:">
+                            <a href="{% url 'admin_user_toggle_status' u.id 'admin' %}" 
+                               class="btn {% if u.is_superuser %}btn-outline-secondary{% else %}btn-warning text-dark{% endif %} btn-sm rounded-pill px-3 fw-bold">
+                                {% if u.is_superuser %}
+                                    <i class="fas fa-shield-alt me-1"></i> ลดระดับ
+                                {% else %}
+                                    <i class="fas fa-star me-1"></i> ตั้งเป็นแอดมิน
+                                {% endif %}
+                            </a>
+                        </td>
+                        <td class="text-end text-md-center pt-2 pt-md-1" data-label="ตัวเลือก:">
+                            <div class="d-flex justify-content-end justify-content-md-center gap-2">
+                                <a href="{% url 'admin_user_edit' u.id %}" class="btn btn-light btn-sm rounded-circle border shadow-sm" style="width: 32px; height: 32px;" title="แก้ไขข้อมูล">
+                                    <i class="fas fa-edit text-primary"></i>
+                                </a>
+                                {% if u != request.user %}
+                                <a href="{% url 'admin_user_delete' u.id %}" class="btn btn-light btn-sm rounded-circle border shadow-sm" style="width: 32px; height: 32px;" title="ลบบัญชี">
+                                    <i class="fas fa-trash-alt text-danger"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="text-end pe-md-4 text-muted small" data-label="วันที่สมัคร:">
+                            <i class="fas fa-calendar-alt me-1 opacity-50 d-md-none"></i>{{ u.date_joined|date:"d M Y" }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted border-0">
+                            <i class="fas fa-users-slash display-4 mb-3 d-block opacity-25"></i>
+                            ไม่พบข้อมูลผู้ใช้งาน
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
