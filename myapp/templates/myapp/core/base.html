@@ -108,78 +108,192 @@
             transition: margin-left 0.3s ease;
         }
 
-        /* Slim Glass Sidebar */
+        /* Premium Slim Glass Sidebar */
         .sidebar {
             position: fixed;
             top: 0;
             left: 0;
             width: var(--sidebar-width);
             height: 100vh;
-            background: var(--sidebar-glass);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.98) 0%, rgba(15, 23, 42, 0.92) 100%);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
             color: #fff;
-            padding: 1.5rem 1rem;
+            padding: 1.5rem 0.5rem;
             z-index: 1040;
-            transition: transform 0.3s ease;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 15px 0 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .sidebar-header {
+            padding: 0 1rem;
+            margin-bottom: 2rem;
+            flex-shrink: 0;
         }
 
         .sidebar-brand {
-            font-size: 1.4rem;
-            font-weight: 700;
+            font-size: 1.6rem;
+            font-weight: 800;
             color: #fff;
             text-decoration: none;
             display: flex;
             align-items: center;
-            margin-bottom: 2.5rem;
-            padding-left: 0.5rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #fff 0%, #cbd5e1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .sidebar-brand i {
             color: #38bdf8;
+            -webkit-text-fill-color: initial;
+            filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.4));
+            margin-right: 12px;
+        }
+
+        .sidebar-content {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 0 0.5rem;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+        }
+
+        .sidebar-content::-webkit-scrollbar {
+            width: 4px;
+        }
+        .sidebar-content::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
         }
 
         .nav-sidebar .nav-item {
-            margin-bottom: 0.5rem;
+            margin-bottom: 4px;
         }
 
         .nav-sidebar .nav-link {
-            color: #cbd5e1; /* Improved contrast for Dark UI */
-            border-radius: 10px;
-            padding: 0.8rem 1.2rem;
+            color: #94a3b8;
+            border-radius: 14px;
+            padding: 0.9rem 1.1rem;
             font-weight: 500;
+            font-size: 0.95rem;
             display: flex;
             align-items: center;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
         }
 
         .nav-sidebar .nav-link i {
             width: 24px;
-            font-size: 1.1rem;
-            margin-right: 12px;
-            color: #94a3b8; /* Dimmer but clear icon */
+            font-size: 1.15rem;
+            margin-right: 14px;
+            color: #475569;
             transition: all 0.3s ease;
         }
 
-        .nav-sidebar .nav-link:hover, .nav-sidebar .nav-link.active {
-            color: #ffffff;
-            background: rgba(255, 255, 255, 0.15); /* Slightly brighter hover */
+        .nav-sidebar .nav-link:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.05);
             transform: translateX(5px);
         }
 
-        .nav-sidebar .nav-link:hover i, .nav-sidebar .nav-link.active i {
+        .nav-sidebar .nav-link.active {
+            color: #fff;
+            background: rgba(56, 189, 248, 0.12);
+            font-weight: 600;
+            box-shadow: inset 0 0 20px rgba(56, 189, 248, 0.05);
+        }
+
+        .nav-sidebar .nav-link.active::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 25%;
+            height: 50%;
+            width: 4px;
+            background: #38bdf8;
+            border-radius: 0 4px 4px 0;
+            box-shadow: 2px 0 10px rgba(56, 189, 248, 0.5);
+        }
+
+        .nav-sidebar .nav-link:hover i, 
+        .nav-sidebar .nav-link.active i {
             color: #38bdf8;
+            transform: scale(1.1);
+        }
+
+        .sidebar-footer {
+            flex-shrink: 0;
+            margin-top: auto;
+            padding: 1rem 1rem 1.5rem 1rem;
+            background: none !important;
+            border: none !important;
+            box-shadow: none !important;
+            backdrop-filter: none !important;
+        }
+
+        .btn-logout-premium {
+            background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+            color: #fff;
+            border: none;
+            width: 100%;
+            padding: 0.85rem;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(225, 29, 72, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-logout-premium:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(225, 29, 72, 0.5);
+            filter: brightness(1.1);
+        }
+
+        .user-profile-mini {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 1.25rem;
+            padding: 0 0.5rem;
+        }
+
+        .avatar-circle {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #fff;
+            box-shadow: 0 4px 10px rgba(56, 189, 248, 0.3);
+            font-size: 0.85rem;
+        }
+
+        .username {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #f1f5f9;
         }
 
         /* Main Content wrapper */
         .main-wrapper {
             margin-left: {% if request.user.is_authenticated %}var(--sidebar-width){% else %}0{% endif %};
-            padding: {% if request.user.is_authenticated %}1rem 2rem 3rem 2rem{% else %}0{% endif %};
+            padding: {% if request.user.is_authenticated %}1.5rem 2rem 3rem 2rem{% else %}0{% endif %};
             min-height: 100vh;
-            transition: margin-left 0.3s ease;
+            transition: margin-left 0.4s ease;
         }
 
         /* Adjustments for non-authenticated pages */
@@ -231,8 +345,9 @@
     {% if request.user.is_authenticated %}
     
     <aside class="sidebar d-flex flex-column" id="sidebar">
-        <div class="d-flex justify-content-between align-items-center mb-1">
-            <a href="{% url 'dashboard' %}" class="sidebar-brand">
+        <!-- Header Section -->
+        <div class="sidebar-header d-flex justify-content-between align-items-center mb-1">
+            <a href="{% url 'dashboard' %}" class="sidebar-brand mb-0">
                 <i class="fas fa-paw me-2"></i> VetCare
             </a>
             <button class="btn btn-link text-white d-lg-none" id="sidebarCloseBtn">
@@ -240,87 +355,78 @@
             </button>
         </div>
         
-        <ul class="nav flex-column nav-sidebar w-100">
-            
-            <li class="nav-item">
-                <a class="nav-link {% if request.path == '/' or '/dashboard' in request.path %}active{% endif %}" href="{% url 'dashboard' %}">
-                    <i class="fas fa-chart-pie"></i> ภาพรวมระบบ
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {% if '/owners' in request.path %}active{% endif %}" href="{% url 'owner_list' %}">
-                    <i class="fas fa-users"></i> รายชื่อเจ้าของสัตว์
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {% if '/pets' in request.path %}active{% endif %}" href="{% url 'pet_list' %}">
-                    <i class="fas fa-dog"></i> สัตว์เลี้ยง
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {% if '/appointments' in request.path %}active{% endif %}" href="{% url 'appointment_list' %}">
-                    <i class="far fa-calendar-alt"></i> การนัดหมาย
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {% if '/medical-records' in request.path %}active{% endif %}" href="{% url 'medical_record_list' %}">
-                    <i class="fas fa-notes-medical"></i> ประวัติการรักษา
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {% if '/medicines' in request.path %}active{% endif %}" href="{% url 'medicine_list' %}">
-                    <i class="fas fa-pills"></i> คลังยาและเวชภัณฑ์
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {% if '/vets' in request.path %}active{% endif %}" href="{% url 'vet_list' %}">
-                    <i class="fas fa-user-md"></i> ทีมสัตวแพทย์
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {% if '/pos' in request.path %}active{% endif %}" href="{% url 'pos' %}">
-                    <i class="fas fa-cash-register"></i> ชำระเงิน / POS
-                </a>
-            </li>
-            {% if request.user.is_superuser %}
-            <li class="nav-item">
-                <a class="nav-link {% if '/users' in request.path %}active{% endif %}" href="{% url 'admin_user_management' %}" style="color: #fbbf24;">
-                    <i class="fas fa-crown"></i> จัดการยศ/สิทธิ์
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {% if '/sql-dashboard' in request.path %}active{% endif %}" href="{% url 'sql_clinic_dashboard' %}" style="color: #38bdf8;">
-                    <i class="fas fa-database"></i> SQL Dashboard (ขั้นสูง)
-                </a>
-            </li>
-            {% endif %}
-        </ul>
+        <!-- Scrollable Content Section -->
+        <div class="sidebar-content">
+            <ul class="nav flex-column nav-sidebar w-100">
+                <li class="nav-item">
+                    <a class="nav-link {% if request.path == '/' or '/dashboard' in request.path %}active{% endif %}" href="{% url 'dashboard' %}">
+                        <i class="fas fa-chart-pie"></i> ภาพรวมระบบ
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if '/owners' in request.path %}active{% endif %}" href="{% url 'owner_list' %}">
+                        <i class="fas fa-users"></i> รายชื่อเจ้าของสัตว์
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if '/pets' in request.path %}active{% endif %}" href="{% url 'pet_list' %}">
+                        <i class="fas fa-dog"></i> สัตว์เลี้ยง
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if '/appointments' in request.path %}active{% endif %}" href="{% url 'appointment_list' %}">
+                        <i class="far fa-calendar-alt"></i> การนัดหมาย
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if '/medical-records' in request.path %}active{% endif %}" href="{% url 'medical_record_list' %}">
+                        <i class="fas fa-notes-medical"></i> ประวัติการรักษา
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if '/medicines' in request.path %}active{% endif %}" href="{% url 'medicine_list' %}">
+                        <i class="fas fa-pills"></i> คลังยาและเวชภัณฑ์
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if '/vets' in request.path %}active{% endif %}" href="{% url 'vet_list' %}">
+                        <i class="fas fa-user-md"></i> ทีมสัตวแพทย์
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if '/pos' in request.path %}active{% endif %}" href="{% url 'pos' %}">
+                        <i class="fas fa-cash-register"></i> ชำระเงิน / POS
+                    </a>
+                </li>
+                {% if request.user.is_superuser %}
+                <li class="nav-item">
+                    <a class="nav-link {% if '/users' in request.path %}active{% endif %}" href="{% url 'admin_user_management' %}" style="color: #fbbf24;">
+                        <i class="fas fa-crown"></i> จัดการยศ/สิทธิ์
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if '/sql-dashboard' in request.path %}active{% endif %}" href="{% url 'sql_clinic_dashboard' %}" style="color: #38bdf8;">
+                        <i class="fas fa-database"></i> SQL Dashboard (ขั้นสูง)
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
         
-        <div class="mt-auto">
-            <hr class="border-secondary opacity-25">
-            <div class="d-flex align-items-center ps-2 py-2">
-                <div class="bg-primary bg-gradient text-white rounded-circle d-flex justify-content-center align-items-center fw-bold me-3 shadow-sm" style="width: 40px; height: 40px;">
+        <!-- Sticky Footer Section -->
+        <div class="sidebar-footer">
+            <div class="user-profile-mini">
+                <div class="avatar-circle">
                     {{ request.user.username|make_list|first|upper }}
                 </div>
-                <div class="ms-1">
-                    <div class="fw-bold" style="font-size: 0.9rem;">
-                        {% if request.user.first_name %}{{ request.user.first_name }}{% else %}{{ request.user.username }}{% endif %}
-                    </div>
-                    <div class="text-secondary small">
-                        {% if request.user.is_superuser %}
-                            <span style="color: #fbbf24;"><i class="fas fa-crown me-1"></i>แอดมิน (Admin)</span>
-                        {% elif request.user.is_staff %}
-                            <span style="color: #38bdf8;"><i class="fas fa-user-shield me-1"></i>พนักงาน (Staff)</span>
-                        {% else %}
-                            <span style="color: #86efac;"><i class="fas fa-user me-1"></i>ผู้ใช้งานทั่วไป (Normal Client)</span>
-                        {% endif %}
-                    </div>
+                <div class="username">
+                    {% if request.user.first_name %}{{ request.user.first_name }}{% else %}{{ request.user.username }}{% endif %}
                 </div>
             </div>
             
-            <form action="{% url 'logout' %}" method="post" class="mt-4 px-2">
+            <form action="{% url 'logout' %}" method="post" class="px-0">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-danger w-100 rounded-pill py-2 shadow-sm border-0 fw-bold" style="background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);">
+                <button type="submit" class="btn btn-logout-premium">
                     <i class="fas fa-sign-out-alt me-2"></i>ออกจากระบบ
                 </button>
             </form>

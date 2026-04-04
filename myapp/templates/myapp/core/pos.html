@@ -17,7 +17,6 @@
     display: flex;
     flex-direction: column;
     min-width: 0;
-    overflow: hidden;
     padding: 1.5rem; /* Desktop default */
   }
   @media (max-width: 991.98px) {
@@ -508,9 +507,22 @@
   /* ===== CATEGORY TABS ===== */
   .category-tabs {
     display: flex;
-    gap: .4rem;
-    margin-bottom: .75rem;
-    flex-wrap: wrap;
+    gap: .6rem;
+    margin-bottom: 1rem;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: .2rem .2rem .5rem .2rem;
+  }
+  .category-tabs::-webkit-scrollbar {
+    height: 6px;
+  }
+  .category-tabs::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.1);
+    border-radius: 10px;
+  }
+  [data-bs-theme="dark"] .category-tabs::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.1);
   }
   .cat-tab {
     border: 1.5px solid #e2e8f0;
@@ -640,6 +652,15 @@
       font-size: 0.78rem !important;
       padding: 0.35rem 0.75rem !important;
     }
+  }
+
+  /* Grab scroll cursor */
+  .category-tabs {
+    cursor: grab;
+    user-select: none;
+  }
+  .category-tabs:active {
+    cursor: grabbing;
   }
 </style>
 {% endblock %}
@@ -858,7 +879,7 @@
     <input type="text" id="barcodeInput" style="position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;" autocomplete="off">
 
     
-    <div class="category-tabs d-flex flex-nowrap overflow-auto no-scrollbar scroll-smooth mb-3" id="categoryTabs">
+    <div class="category-tabs d-flex flex-nowrap overflow-auto mb-3" id="categoryTabs">
       <button class="cat-tab active" data-cat="all" onclick="setCategory('all', this)">ทั้งหมด</button>
     </div>
 
@@ -1109,6 +1130,35 @@ function buildCategories() {
     btn.onclick = () => setCategory(t, btn);
     tabs.appendChild(btn);
   });
+  
+  // Enable mouse drag-to-scroll
+  enableDragScroll(tabs);
+}
+
+function enableDragScroll(el) {
+    let isDown = false;
+    let startX;
+    let scrollLeft;
+
+    el.addEventListener('mousedown', (e) => {
+        isDown = true;
+        el.classList.add('active-dragging');
+        startX = e.pageX - el.offsetLeft;
+        scrollLeft = el.scrollLeft;
+    });
+    el.addEventListener('mouseleave', () => {
+        isDown = false;
+    });
+    el.addEventListener('mouseup', () => {
+        isDown = false;
+    });
+    el.addEventListener('mousemove', (e) => {
+        if(!isDown) return;
+        e.preventDefault();
+        const x = e.pageX - el.offsetLeft;
+        const walk = (x - startX) * 2; // scroll-fast factor
+        el.scrollLeft = scrollLeft - walk;
+    });
 }
 
 function setCategory(cat, el) {

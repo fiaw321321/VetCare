@@ -1202,7 +1202,6 @@ class MedicalRecordCreateView(CreateView):
         context = super().get_context_data(**kwargs)
         context['title'] = "บันทึกประวัติการรักษาใหม่"
         import json
-        prices = {m.idInside: float(m.selling_price) for m in Medicine.objects.all()}
         prices = {m.id: float(m.selling_price) for m in Medicine.objects.all()}
         context['medicine_prices_json'] = json.dumps(prices)
         return context
@@ -1227,8 +1226,6 @@ class MedicalRecordUpdateView(UpdateView):
     def form_valid(self, form):
         if self.object.pet.price_level == 'ราคาพิเศษ':
             MedicalRecord.objects.filter(id=self.object.id).update(cost=F('cost') * 0.9)
-        from django.shortcuts import redirect
-        return redirect(self.get_success_url())
         from django.shortcuts import redirect
         return redirect(self.get_success_url())
 class MedicalRecordDeleteView(DeleteView):
