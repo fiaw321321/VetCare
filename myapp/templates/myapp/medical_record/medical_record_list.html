@@ -68,7 +68,7 @@
     <div class="mb-4">
         <form method="get" class="search-bar d-flex align-items-center border">
             <i class="fas fa-search text-muted me-3"></i>
-            <input type="text" name="q" value="{{ q|default:'' }}" class="form-control border-0 shadow-none" placeholder="ค้นหาตามชื่อสัตว์, เลขที่เอกสาร หรือวันที่ตรวจ (เช่น 21 Apr)...">
+            <input type="text" name="q" id="searchInput" value="{{ q|default:'' }}" class="form-control border-0 shadow-none" placeholder="ค้นหาตามชื่อสัตว์, เลขที่เอกสาร หรือวันที่ตรวจ (เช่น 21 Apr)...">
             <button type="submit" class="btn btn-success rounded-pill px-4 ms-2">ค้นหา</button>
             {% if q %}
                 <a href="{% url 'medical_record_list' %}" class="btn btn-link text-muted ms-1"><i class="fas fa-times"></i></a>
@@ -76,6 +76,7 @@
         </form>
     </div>
 
+    <div id="resultsContainer">
     {% if records %}
     <div class="row">
         {% for record in records %}
@@ -159,14 +160,8 @@
         {% include 'myapp/includes/pagination.html' %}
     </div>
 
-    {% else %}
-    <div class="text-center py-5 bg-light rounded-3 border-dashed" style="border: 2px dashed #dee2e6;">
-        <div class="display-1 text-muted mb-3 opacity-25"><i class="fas fa-notes-medical"></i></div>
-        <h4 class="text-muted">ไม่พบข้อมูลประวัติการรักษา</h4>
-        <p class="text-muted small">คุณสามารถเริ่มบันทึกประวัติการรักษาใหม่ได้โดยคลิกปุ่มด้านบน</p>
-        <a href="{% url 'medical_record_create' %}" class="btn btn-success rounded-pill mt-3">เริ่มต้นบันทึกข้อมูล</a>
-    </div>
     {% endif %}
+    </div>
 </div>
 
 
@@ -360,6 +355,37 @@ document.addEventListener('DOMContentLoaded', function() {
     if (printActionBtn) {
         printActionBtn.addEventListener('click', function() {
             printClean('print-area');
+        });
+    }
+
+    // Real-time AJAX search setup
+    const searchInput = document.getElementById('searchInput');
+    const resultsContainer = document.getElementById('resultsContainer');
+    let searchTimeout;
+
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            const query = this.value;
+            const url = new URL(window.location.href);
+            url.searchParams.set('q', query);
+
+            searchTimeout = setTimeout(() => {
+                fetch(url, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const newResults = doc.getElementById('resultsContainer');
+                    if (newResults) {
+                        resultsContainer.innerHTML = newResults.innerHTML;
+                        window.history.replaceState({path: url.toString()}, '', url.toString());
+                    }
+                })
+                .catch(error => console.error('Error fetching search results:', error));
+            }, 300);
         });
     }
 });

@@ -6,6 +6,7 @@ urlpatterns = [
     path('client/', views.client_dashboard, name='client_dashboard'),
     path('client/register-pet/', views.client_register_pet, name='client_register_pet'),
     path('client/edit-pet/<int:pk>/', views.client_edit_pet, name='client_edit_pet'),
+    path('client/delete-pet/<int:pk>/', views.client_pet_delete, name='client_pet_delete'),
     path('client/appointment/', views.client_appointment, name='client_appointment'),
     path('client/profile/', views.client_profile, name='client_profile'),
     path('admin-backend/sql-dashboard/', views.sql_clinic_dashboard, name='sql_clinic_dashboard'),

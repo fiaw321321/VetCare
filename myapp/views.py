@@ -664,6 +664,22 @@ def owner_pets(request):
         'pets': pets,
     }
     return render(request, 'myapp/owner/owner_pets.html', context)
+
+@login_required
+def client_pet_delete(request, pk):
+    owner = getattr(request.user, 'owner_profile', None)
+    if not owner:
+        return redirect('client_profile')
+    pet = get_object_or_404(Pet, pk=pk, owner=owner)
+    pet_name = pet.name
+    
+    # Optional: Delete image from storage
+    if pet.image:
+        pet.image.delete(save=False)
+        
+    pet.delete()
+    messages.success(request, f'ลบข้อมูล {pet_name} ออกจากระบบเรียบร้อยแล้ว')
+    return redirect('client_dashboard')
 def owner_appointments(request):
     owner = getattr(request.user, 'owner_profile', None)
     if not owner:
@@ -837,6 +853,11 @@ class PetUpdateView(UpdateView):
         address_1 = form.cleaned_data.get('owner_address_1', '')
         address_2 = form.cleaned_data.get('owner_address_2', '')
         full_address = f"{address_1} {address_2}".strip()
+        
+        # Handle custom image clear checkbox
+        if self.request.POST.get('image-clear'):
+            form.instance.image = None
+
         owner, created = Owner.objects.get_or_create(
             first_name=first_name,
             last_name=last_name,
@@ -893,18 +914,16 @@ class VetUpdateView(StaffRequiredMixin, UpdateView):
     form_class = VetForm
     success_url = reverse_lazy('vet_list')
     def form_valid(self, form):
-        from django.http import HttpResponseRedirect
-        cleaned_data = form.cleaned_data.copy()
-        image = cleaned_data.pop('image', None)
-        Vet.objects.filter(pk=self.kwargs['pk']).update(**cleaned_data)
-        instance = self.get_object()
-        if image is False:
-            instance.image = None
-            instance.save(update_fields=['image'])
-        elif image:
-            instance.image = image
-            instance.save(update_fields=['image'])
-        return HttpResponseRedirect(self.get_success_url())
+        # Handle custom image clear checkbox
+        if self.request.POST.get('image-clear'):
+            form.instance.image = None
+        
+        # We don't need manual filter().update() anymore, form.save() is better and handles ImageField
+        response = super().form_valid(form)
+        
+        # Sync Vet model from other fields in cleaned_data just in case if needed, 
+        # but ModelForm.save() handles all 'image' and meta-fields usually.
+        return response
 class VetDeleteView(StaffRequiredMixin, DeleteView):
     model = Vet
     template_name = 'myapp/core/confirm_delete.html'
@@ -982,6 +1001,10 @@ class MedicineUpdateView(StaffRequiredMixin, UpdateView):
         context = super().get_context_data(**kwargs)
         context['recent_medicines'] = Medicine.objects.order_by('-id')[:5]
         return context
+    def form_valid(self, form):
+        if self.request.POST.get('image-clear'):
+            form.instance.image = None
+        return super().form_valid(form)
 class MedicineDeleteView(StaffRequiredMixin, DeleteView):
     model = Medicine
     template_name = 'myapp/core/confirm_delete.html'
@@ -1440,7 +1463,12 @@ def client_edit_pet(request, pk):
     if request.method == 'POST':
         form = ClientPetRegistrationForm(request.POST, request.FILES, instance=pet)
         if form.is_valid():
-            form.save()
+            pet = form.save(commit=False)
+            if request.POST.get('image-clear'):
+                if pet.image:
+                    pet.image.delete(save=False)
+                pet.image = None
+            pet.save()
             messages.success(request, 'แก้ไขข้อมูลสัตว์เลี้ยงสำเร็จ!')
             return redirect('client_dashboard')
     else:

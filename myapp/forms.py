@@ -63,7 +63,7 @@ class VetForm(forms.ModelForm):
             'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'อีเมล'}),
             'working_hours': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'เช่น จ-ศ 08:00-17:00', 'rows': 3}),
             'remarks': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'หมายเหตุ', 'rows': 2}),
-            'image': forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
+            'image': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
         }
 class PetForm(forms.ModelForm):
     owner_first_name = forms.CharField(max_length=100, required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'กรอกชื่อ'}))
@@ -74,6 +74,18 @@ class PetForm(forms.ModelForm):
     owner_email = forms.EmailField(required=True, widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'อีเมลสำหรับเข้าสู่ระบบ'}))
     owner_password = forms.CharField(max_length=128, required=True, widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'กำหนดรหัสผ่านเบื้องต้น'}))
     owner_password_confirm = forms.CharField(max_length=128, required=True, widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'ยืนยันรหัสผ่านอีกครั้ง'}))
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk:
+            # If updating, don't force password/email fields if they are already set or optional
+            self.fields['owner_email'].required = False
+            self.fields['owner_password'].required = False
+            self.fields['owner_password_confirm'].required = False
+            # Also make owner name optional if we want to allow updating just pet info
+            self.fields['owner_first_name'].required = False
+            self.fields['owner_last_name'].required = False
+            self.fields['owner_phone'].required = False
+
     def clean(self):
         cleaned_data = super().clean()
         password = cleaned_data.get("owner_password")
@@ -111,7 +123,7 @@ class PetForm(forms.ModelForm):
             'sex': forms.RadioSelect(attrs={'class': 'form-check-input'}),
             'breed': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'สายพันธุ์'}),
             'remarks': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'หมายเหตุ', 'rows': 2}),
-            'image': forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
+            'image': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
             'birth_date': forms.DateInput(attrs={
                 'class': 'form-control',
                 'type': 'date',
@@ -168,7 +180,7 @@ class MedicineForm(forms.ModelForm):
             'expiry_date':   forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'description':      forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'เช่น เก็บในอุณหภูมิต่ำกว่า 25 องศา', 'rows': 2}),
             'full_description': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'ใส่รายละเอียด สรรพคุณ และวิธีใช้โดยละเอียด...', 'rows': 4}),
-            'image':            forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
+            'image':            forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
         }
 class MedicalRecordForm(forms.ModelForm):
     class Meta:

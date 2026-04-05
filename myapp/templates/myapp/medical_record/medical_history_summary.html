@@ -23,6 +23,7 @@
     </div>
 
     
+    <div id="resultsContainer">
     <div class="row g-3 mb-4">
         
         <div class="col-md-4">
@@ -92,21 +93,21 @@
                     <label class="form-label fw-bold small">ค้นหาเจ้าของ / รหัสสัตว์เลี้ยง / เลขที่บิล</label>
                     <div class="input-group">
                         <span class="input-group-text bg-white border-0 text-muted"><i class="fas fa-search"></i></span>
-                        <input type="text" name="q" value="{{ query }}" class="form-control border-0 shadow-none py-2" placeholder="ระบุชื่อเจ้าของหรือเลขบิล..." style="background: white;">
+                        <input type="text" name="q" id="searchInput" value="{{ query }}" class="form-control border-0 shadow-none py-2" placeholder="ระบุชื่อเจ้าของหรือเลขบิล..." style="background: white;">
                     </div>
                 </div>
                 <div class="col-md-2">
                     <label class="form-label fw-bold small">เริ่มต้นวันที่</label>
                     <div class="input-group">
                         <span class="input-group-text bg-white border-end-0 text-muted"><i class="fas fa-calendar-alt"></i></span>
-                        <input type="text" name="date_from" value="{{ date_from }}" class="form-control border-start-0 py-2 datepicker" placeholder="เลือกวันที่..." style="background: white;">
+                        <input type="text" name="date_from" id="dateFromInput" value="{{ date_from }}" class="form-control border-start-0 py-2 datepicker" placeholder="เลือกวันที่..." style="background: white;">
                     </div>
                 </div>
                 <div class="col-md-2">
                     <label class="form-label fw-bold small">สิ้นสุดวันที่</label>
                     <div class="input-group">
                         <span class="input-group-text bg-white border-end-0 text-muted"><i class="fas fa-calendar-alt"></i></span>
-                        <input type="text" name="date_to" value="{{ date_to }}" class="form-control border-start-0 py-2 datepicker" placeholder="เลือกวันที่..." style="background: white;">
+                        <input type="text" name="date_to" id="dateToInput" value="{{ date_to }}" class="form-control border-start-0 py-2 datepicker" placeholder="เลือกวันที่..." style="background: white;">
                     </div>
                 </div>
                 <div class="col-md-4">
@@ -181,6 +182,7 @@
                 </tbody>
             </table>
         </div>
+    </div>
     </div>
 </div>
 
@@ -305,6 +307,7 @@
 </style>
 
 
+
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>
 <script>
@@ -315,8 +318,45 @@
             altInput: true,
             altFormat: "j F Y",
             allowInput: true,
-            disableMobile: "true"
+            disableMobile: "true",
+            onChange: function(selectedDates, dateStr, instance) {
+                triggerSearch();
+            }
         });
+
+        const searchInput = document.getElementById('searchInput');
+        let searchTimeout;
+
+        function triggerSearch() {
+            clearTimeout(searchTimeout);
+            const query = searchInput.value;
+            const dateFrom = document.getElementById('dateFromInput').value;
+            const dateTo = document.getElementById('dateToInput').value;
+            
+            const url = new URL(window.location.href);
+            url.searchParams.set('q', query);
+            url.searchParams.set('date_from', dateFrom);
+            url.searchParams.set('date_to', dateTo);
+
+            searchTimeout = setTimeout(() => {
+                fetch(url, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const newContent = doc.getElementById('resultsContainer');
+                    if (newContent) {
+                        document.getElementById('resultsContainer').innerHTML = newContent.innerHTML;
+                        window.history.replaceState({path: url.toString()}, '', url.toString());
+                    }
+                })
+                .catch(error => console.error('Error fetching search results:', error));
+            }, 300);
+        }
+
+        searchInput.addEventListener('input', triggerSearch);
     });
 </script>
 {% endblock %}

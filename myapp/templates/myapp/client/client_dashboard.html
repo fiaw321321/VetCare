@@ -85,13 +85,16 @@
                                 </div>
                                 <div class="flex-grow-1 ms-3">
                                     <h6 class="mb-0 fw-bold text-dark">{{ pet.name }}</h6>
-                                    <small class="text-muted">{{ pet.species|default:"ไม่ระบุประเภท" }} - อายุ {{ pet.age|default:"-" }} ปี</small>
+                                    <small class="text-muted">{{ pet.species|default:"ไม่ระบุประเภท" }} - {% if pet.age is not none %}{% if pet.age >= 1 %}อายุ {{ pet.age }} ปี{% else %}อายุ น้อยกว่า 1 ปี{% endif %}{% else %}ไม่ระบุอายุ{% endif %}</small>
                                 </div>
                                 <div class="ms-auto d-flex align-items-center gap-2">
                                     <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2 py-1" style="font-size: 0.7rem;">ปกติ</span>
                                     <a href="{% url 'client_edit_pet' pet.id %}" class="btn btn-sm rounded-circle d-flex align-items-center justify-content-center border-0 shadow-none" style="width: 28px; height: 28px; background-color: #f1f5f9; color: #64748b; transition: all 0.2s;" onmouseover="this.style.backgroundColor='#e2e8f0'; this.style.color='#0f766e'" onmouseout="this.style.backgroundColor='#f1f5f9'; this.style.color='#64748b'" title="แก้ไขข้อมูล">
                                         <i class="fas fa-pen" style="font-size: 0.75rem;"></i>
                                     </a>
+                                    <button type="button" onclick="confirmPetDelete('{{ pet.id }}', '{{ pet.name|escapejs }}')" class="btn btn-sm rounded-circle d-flex align-items-center justify-content-center border-0 shadow-none" style="width: 28px; height: 28px; background-color: #fff1f2; color: #e11d48; transition: all 0.2s;" onmouseover="this.style.backgroundColor='#ffe4e6'; this.style.color='#be123c'" onmouseout="this.style.backgroundColor='#fff1f2'; this.style.color='#e11d48'" title="ลบข้อมูล">
+                                        <i class="fas fa-trash-alt" style="font-size: 0.75rem;"></i>
+                                    </button>
                                 </div>
                             </div>
                             {% endfor %}
@@ -142,6 +145,33 @@
     </div>
 
 </div>
+
+{% block extra_js %}
+<script>
+    function confirmPetDelete(petId, petName) {
+        Swal.fire({
+            title: 'ยืนยันการลบข้อมูล?',
+            text: 'คุณต้องการลบข้อมูลของ "' + petName + '" ใช่หรือไม่? การกระทำนี้ไม่สามารถเรียกคืนข้อมูลได้!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: '<i class="fas fa-trash-alt me-2"></i>ใช่, ลบทันที',
+            cancelButtonText: 'ยกเลิก',
+            borderRadius: '20px',
+            customClass: {
+                popup: 'rounded-4 shadow-lg border-0',
+                confirmButton: 'px-4 py-2 fw-bold rounded-pill',
+                cancelButton: 'px-4 py-2 fw-bold rounded-pill'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = "/client/delete-pet/" + petId + "/";
+            }
+        });
+    }
+</script>
+{% endblock %}
 
 {% block extra_css %}
 <style>

@@ -20,7 +20,7 @@
             <span class="input-group-text border-0 ps-4" style="background: var(--input-bg);">
                 <i class="fas fa-search text-muted"></i>
             </span>
-            <input type="text" name="q" value="{{ q|default:'' }}" class="form-control border-0 py-3 shadow-none" style="background: var(--input-bg); color: var(--bs-body-color);" placeholder="ค้นหารหัสลูกค้า, ชื่อสัตว์, ประเภท, ชื่อเจ้าของ หรือเบอร์โทร...">
+            <input type="text" name="q" id="searchInput" value="{{ q|default:'' }}" class="form-control border-0 py-3 shadow-none" style="background: var(--input-bg); color: var(--bs-body-color);" placeholder="ค้นหารหัสลูกค้า, ชื่อสัตว์, ประเภท, ชื่อเจ้าของ หรือเบอร์โทร...">
             <button type="submit" class="btn btn-success px-4 fw-bold">ค้นหา</button>
             {% if q %}
                 <a href="{% url 'pet_list' %}" class="btn btn-outline-secondary border-0 d-flex align-items-center px-3" style="background: var(--input-bg);">
@@ -30,6 +30,7 @@
         </div>
     </form>
 
+    <div id="resultsContainer">
     {% if pets %}
     <style>
         /* Responsive Table to Card layout */
@@ -81,8 +82,12 @@
                     <tr>
                         <td class="ps-md-4 item-main" data-label="">
                             <div class="d-flex align-items-center">
-                                <div class="bg-success-subtle rounded-circle me-3 avatar-circle border">
-                                    <i class="fas fa-paw text-success" style="font-size: 1.25rem;"></i>
+                                <div class="bg-white rounded-circle me-3 shadow-sm d-flex align-items-center justify-content-center border overflow-hidden" style="width: 48px; height: 48px;">
+                                    {% if pet.image %}
+                                        <img src="{{ pet.image.url }}" alt="{{ pet.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                    {% else %}
+                                        <i class="fas fa-paw text-success" style="font-size: 1.25rem;"></i>
+                                    {% endif %}
                                 </div>
                                 <div class="text-start">
                                     <div class="fw-bold fs-6 text-wrap">{{ pet.name }}</div>
@@ -148,7 +153,40 @@
         <h4 class="text-muted">ไม่พบข้อมูลสัตว์เลี้ยง</h4>
         <p class="text-muted">ลองค้นหาด้วยคำอื่น หรือเพิ่มข้อมูลใหม่เข้าสู่ระบบ</p>
         <a href="{% url 'pet_create' %}" class="btn btn-success rounded-pill mt-3 px-4">เพิ่มสัตว์เลี้ยงใหม่</a>
-    </div>
     {% endif %}
+    </div>
 </div>
+<script>
+    // Real-time AJAX search
+    const searchInput = document.getElementById('searchInput');
+    const resultsContainer = document.getElementById('resultsContainer');
+    let searchTimeout;
+
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        const query = this.value;
+        const url = new URL(window.location.href);
+        url.searchParams.set('q', query);
+
+        searchTimeout = setTimeout(() => {
+            fetch(url, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newResults = doc.getElementById('resultsContainer');
+                if (newResults) {
+                    resultsContainer.innerHTML = newResults.innerHTML;
+                    // Update the URL without reloading
+                    window.history.replaceState({path: url.toString()}, '', url.toString());
+                }
+            })
+            .catch(error => console.error('Error fetching search results:', error));
+        }, 300); // Faster 300ms delay for AJAX
+    });
+</script>
 {% endblock %}

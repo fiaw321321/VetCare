@@ -1,9 +1,126 @@
 {% extends 'myapp/client/client_base.html' %}
-{% block title %}แก้ไขประวัติสัตว์เลี้ยง - Client Portal{% endblock %}
+{% block title %}แก้ไขประวัติสัตว์เลี้ยง - VetCare{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <style>
+        :root {
+            --primary: #0ea5e9;
+            --primary-dark: #0f766e;
+            --bg-glass: rgba(255, 255, 255, 0.9);
+        }
+
+        .avatar-upload-wrapper {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin: 0 auto;
+        }
+
+        .avatar-preview-container {
+            width: 200px;
+            height: 200px;
+            position: relative;
+            border-radius: 30px; /* Modern rounded look */
+            overflow: hidden;
+            border: 4px solid #fff;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            background: #f1f5f9;
+        }
+
+        #image-preview {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: all 0.3s ease;
+        }
+
+        .avatar-edit-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.6);
+            height: 40%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            backdrop-filter: blur(4px);
+        }
+
+        .avatar-upload-wrapper:hover .avatar-edit-overlay {
+            opacity: 1;
+        }
+
+        .avatar-edit-overlay i {
+            color: #fff;
+            font-size: 1.5rem;
+        }
+
+        .btn-clear-photo {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #fff;
+            color: #ef4444;
+            width: 35px;
+            height: 35px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            border: none;
+            cursor: pointer;
+            z-index: 10;
+            transition: all 0.2s;
+        }
+
+        .btn-clear-photo:hover {
+            background: #ef4444;
+            color: #fff;
+            transform: scale(1.1);
+        }
+
+        .trash-indicator {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(239, 68, 68, 0.2);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .trash-indicator i {
+            color: #ef4444;
+            font-size: 4rem;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+        }
+
+        /* Cropper Styling */
+        .cropper-view-box, .cropper-face { border-radius: 15px; }
+        .modal-content { border-radius: 25px; overflow: hidden; border: none; }
+        .img-container { max-height: 450px; background: #000; }
+        
+        .custom-radio { position: relative; padding-left: 0; }
+        .custom-radio .form-check-input { width: 1.3em; height: 1.3em; cursor: pointer; border: 2px solid #cbd5e1; margin-right: 8px; }
+        .custom-radio .form-check-input:checked { background-color: #0ea5e9; border-color: #0ea5e9; box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1); }
+        .custom-radio .form-check-label { color: #1e293b !important; cursor: pointer; font-size: 0.95rem; display: inline-flex; align-items: center; vertical-align: middle; }
+        .custom-radio .form-check-input:checked + .form-check-label { color: #0ea5e9 !important; }
+    </style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid p-0">
 
-    
     <div class="d-flex align-items-center mb-4">
         <div class="rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 50px; height: 50px; background: linear-gradient(135deg, #0ea5e9, #0f766e);">
             <i class="fas fa-edit text-white fs-5"></i>
@@ -14,29 +131,26 @@
         </div>
     </div>
 
-    
-    <div class="d-flex align-items-center justify-content-between p-3 mb-4 rounded-3" style="background: linear-gradient(135deg, #f0fdf4, #e0f2fe); border: 1px solid #bbf7d0;">
+    <div class="d-flex align-items-center justify-content-between p-3 mb-4 rounded-4 shadow-sm" style="background: white; border: 1px solid #e2e8f0;">
         <div class="d-flex align-items-center gap-3">
-            <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white" style="width: 44px; height: 44px; background: linear-gradient(135deg, #0f766e, #38bdf8); font-size: 1rem;">
-                {{ request.user.first_name|first|upper }}
+            <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white shadow-sm" style="width: 44px; height: 44px; background: linear-gradient(135deg, #0f766e, #38bdf8); font-size: 1rem;">
+                {{ owner.first_name|first|upper }}
             </div>
             <div>
                 <div class="fw-bold" style="color: #0f172a;">{{ owner.first_name }} {{ owner.last_name }}</div>
-                <div class="small text-muted">{{ owner.phone|default:"ยังไม่ระบุเบอร์" }} &nbsp;|&nbsp; รหัส: {{ owner.customer_id }}</div>
+                <div class="small text-muted">{{ owner.phone|default:"ยังไม่ระบุเบอร์" }} &nbsp;|&nbsp; ID: {{ owner.customer_id }}</div>
             </div>
         </div>
-        <a href="{% url 'client_profile' %}" class="btn btn-sm fw-semibold" style="border-radius: 10px; background: white; border: 1px solid #e2e8f0; color: #64748b;">
-            <i class="fas fa-user-edit me-1"></i>แก้ไขข้อมูลส่วนตัว
+        <a href="{% url 'client_profile' %}" class="btn btn-sm px-3 rounded-pill" style="background: #f8fafc; border: 1px solid #e2e8f0; color: #64748b; font-weight: 600;">
+            <i class="fas fa-user-edit me-1"></i>ข้อมูลส่วนตัว
         </a>
     </div>
 
-    
-    <div class="card border-0 shadow-sm" style="border-radius: 20px;">
+    <div class="card border-0 shadow-lg" style="border-radius: 30px; overflow: hidden;">
         <div class="card-body p-4 p-md-5">
-            <form method="post" enctype="multipart/form-data">
+            <form method="post" enctype="multipart/form-data" id="petForm">
                 {% csrf_token %}
 
-                
                 <div class="d-none">
                     {{ form.customer_id }}
                     {{ form.microchip_number }}
@@ -46,26 +160,26 @@
                     {{ form.owner_address_1 }}
                     {{ form.owner_address_2 }}
                     {{ form.owner_phone }}
+                    <input type="checkbox" name="image-clear" id="image-clear-check">
                 </div>
 
                 <div class="row g-5">
-                    
                     <div class="col-xl-8">
-                        <h5 class="fw-bold mb-3 d-flex align-items-center" style="color: #334155;">
-                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex justify-content-center align-items-center me-2" style="width: 32px; height: 32px; font-size: 0.9rem;">1</div>
-                            ข้อมูลสัตว์เลี้ยง (Pet)
+                        <h5 class="fw-bold mb-4 d-flex align-items-center" style="color: #334155;">
+                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 35px; height: 35px; font-size: 1rem;">
+                                <i class="fas fa-paw"></i>
+                            </div>
+                            ข้อมูลทั่วไป
                         </h5>
+                        
                         <div class="row g-4">
                             <div class="col-md-6">
-                                <label class="form-label text-muted fw-semibold small">ชื่อสัตว์เลี้ยง <span class="text-danger">*</span></label>
+                                <label class="form-label text-muted fw-bold small">ชื่อสัตว์เลี้ยง</label>
                                 {{ form.name }}
-                                {% if form.name.errors %}
-                                <div class="text-danger small mt-1"><i class="fas fa-exclamation-circle me-1"></i>{{ form.name.errors|striptags }}</div>
-                                {% endif %}
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label d-block text-muted fw-semibold small">เพศ (Gender)</label>
-                                <div class="d-flex gap-4 align-items-center pt-2">
+                                <label class="form-label d-block text-muted fw-bold small">เพศ</label>
+                                <div class="d-flex gap-4 pt-2">
                                     {% for radio in form.sex %}
                                         {% if radio.choice_label and '----' not in radio.choice_label %}
                                         <div class="form-check custom-radio">
@@ -77,53 +191,69 @@
                                 </div>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label text-muted fw-semibold small">ประเภทสัตว์ (Species)</label>
+                                <label class="form-label text-muted fw-bold small">สายพันธุ์</label>
                                 {{ form.species }}
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label text-muted fw-semibold small">สายพันธุ์ (Breed)</label>
+                                <label class="form-label text-muted fw-bold small">พันธุ์ย่อย</label>
                                 {{ form.breed }}
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label text-muted fw-semibold small">วันเกิด (Birth Date)</label>
+                                <label class="form-label text-muted fw-bold small">วันเกิด</label>
                                 {{ form.birth_date }}
                             </div>
                             <div class="col-12">
-                                <label class="form-label text-muted fw-semibold small">หมายเหตุ / ข้อมูลเพิ่มเติม</label>
+                                <label class="form-label text-muted fw-bold small">รายละเอียดเพิ่มเติม</label>
                                 {{ form.remarks }}
                             </div>
                         </div>
                     </div>
 
-                    
                     <div class="col-xl-4">
-                        <div class="p-4 rounded-4 h-100" style="background-color: #f8fafc; border: 1px dashed #cbd5e1;">
-                            <h6 class="fw-bold mb-3 d-flex align-items-center" style="color: #334155;">
-                                <i class="fas fa-image text-muted me-2"></i> รูปภาพสัตว์เลี้ยง
-                            </h6>
-                            <div class="position-relative bg-white rounded-4 overflow-hidden shadow-sm d-flex align-items-center justify-content-center"
-                                 style="height: 240px; border: 1px solid #e2e8f0; cursor: pointer;"
-                                 id="image-preview-container">
-                                <div class="text-center text-muted p-3" id="image-placeholder" {% if pet.image %}style="display:none;"{% endif %}>
-                                    <div class="bg-light rounded-circle d-inline-flex justify-content-center align-items-center mb-3" style="width: 70px; height: 70px;">
-                                        <i class="fas fa-camera fs-2 text-secondary opacity-50"></i>
+                        <div class="p-4 rounded-5 h-100 shadow-sm border border-2 border-dashed d-flex flex-column align-items-center justify-content-center text-center" style="background: #f8fafc;">
+                            <h6 class="fw-bold mb-4 text-slate-700">รูปถ่ายโปรไฟล์</h6>
+                            
+                            <div class="avatar-upload-wrapper">
+                                <button type="button" class="btn-clear-photo" id="clearPhotoBtn" title="ลบรูปภาพ">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                                
+                                <div class="avatar-preview-container" id="avatarContainer">
+                                    <div class="trash-indicator" id="trashIndicator">
+                                        <i class="fas fa-trash-alt"></i>
                                     </div>
-                                    <p class="mb-1 fw-bold text-dark opacity-75">เปลี่ยนรูปภาพ</p>
-                                    <p class="small mb-0 opacity-50">คลิกเพื่อเลือกไฟล์<br>รองรับ JPG, PNG</p>
+                                    
+                                    <img id="image-preview" 
+                                         src="{% if pet.image %}{{ pet.image.url }}{% else %}https://ui-avatars.com/api/?name={{ pet.name|urlencode }}&background=random&size=200{% endif %}" 
+                                         alt="Pet Profile"
+                                         onerror="this.src='https://ui-avatars.com/api/?name={{ pet.name|urlencode }}&background=random&size=200'">
+                                    
+                                    <label for="{{ form.image.id_for_label }}" class="avatar-edit-overlay">
+                                        <i class="fas fa-camera"></i>
+                                    </label>
                                 </div>
-                                <img id="image-preview"
-                                     src="{% if pet.image %}{{ pet.image.url }}{% else %}#{% endif %}"
-                                     alt="Preview" class="w-100 h-100"
-                                     style="{% if not pet.image %}display:none;{% endif %} object-fit:cover; position:absolute; top:0; left:0;">
+                                <div class="mt-3">
+                                    <span class="badge bg-warning text-dark px-3 py-2 rounded-pill d-none" id="undoBtn" style="cursor: pointer;">
+                                        <i class="fas fa-undo me-1"></i>เลิกลบ
+                                    </span>
+                                </div>
                             </div>
-                            <div class="mt-3 text-center">{{ form.image }}</div>
+                            
+                            <div class="d-none">
+                                {{ form.image }}
+                            </div>
+                            
+                            <p class="small text-muted mt-4">
+                                คลิกที่รูปเพื่อเปลี่ยนรูปภาพ <br>
+                                แนะนำภาพถ่ายที่เห็นใบหน้าชัดเจน
+                            </p>
                         </div>
                     </div>
                 </div>
 
                 <div class="d-flex justify-content-end gap-3 mt-5 pt-4 border-top">
-                    <a href="{% url 'client_dashboard' %}" class="btn btn-light px-5 fw-bold" style="border-radius: 12px; color: #64748b;">ยกเลิก</a>
-                    <button type="submit" class="btn px-5 py-2 fw-bold text-white" style="border-radius: 12px; background: linear-gradient(135deg, #0ea5e9, #0f766e); border: none; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.25);">
+                    <a href="{% url 'client_dashboard' %}" class="btn btn-light px-5 py-2 fw-bold rounded-4">ยกเลิก</a>
+                    <button type="submit" class="btn btn-primary px-5 py-2 fw-bold rounded-4 shadow-sm">
                         <i class="fas fa-save me-2"></i>อัปเดตข้อมูล
                     </button>
                 </div>
@@ -132,40 +262,138 @@
     </div>
 </div>
 
-<style>
-/* Custom Radio Fix */
-.custom-radio { position: relative; padding-left: 0; }
-.custom-radio .form-check-input { width: 1.3em; height: 1.3em; cursor: pointer; border: 2px solid #cbd5e1; margin-right: 8px; }
-.custom-radio .form-check-input:checked { background-color: #0ea5e9; border-color: #0ea5e9; box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1); }
-.custom-radio .form-check-label { color: #1e293b !important; cursor: pointer; font-size: 0.95rem; display: inline-flex; align-items: center; vertical-align: middle; }
-.custom-radio .form-check-input:checked + .form-check-label { color: #0ea5e9 !important; }
-</style>
+<!-- Cropper Modal -->
+<div class="modal fade" id="cropModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content text-start">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="fw-bold"><i class="fas fa-crop-alt me-2 text-primary"></i>ปรับขนาดรูปภาพ</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="img-container rounded-4 mb-3">
+                    <img id="cropImage" src="" alt="To crop">
+                </div>
+                <div class="d-flex justify-content-center gap-2">
+                    <button class="btn btn-light rounded-pill px-3" onclick="cropper.rotate(-90)"><i class="fas fa-undo"></i> หมุนซ้าย</button>
+                    <button class="btn btn-light rounded-pill px-3" onclick="cropper.rotate(90)"><i class="fas fa-redo"></i> หมุนขวา</button>
+                    <button class="btn btn-light rounded-pill px-3" onclick="cropper.zoom(0.1)"><i class="fas fa-search-plus"></i></button>
+                    <button class="btn btn-light rounded-pill px-3" onclick="cropper.zoom(-0.1)"><i class="fas fa-search-minus"></i></button>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light px-4 rounded-pill" data-bs-dismiss="modal">ยกเลิก</button>
+                <button type="button" class="btn btn-primary px-4 rounded-pill" id="cropBtn">ใช้รูปนี้</button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 <script>
-    const imageInput = document.querySelector('input[type="file"]');
+    let cropper;
+    const imageInput = document.getElementById('{{ form.image.id_for_label }}');
     const imagePreview = document.getElementById('image-preview');
-    const imagePlaceholder = document.getElementById('image-placeholder');
-    const imageContainer = document.getElementById('image-preview-container');
+    const cropModalEl = document.getElementById('cropModal');
+    const cropModal = new bootstrap.Modal(cropModalEl);
+    const cropImage = document.getElementById('cropImage');
+    const clearPhotoBtn = document.getElementById('clearPhotoBtn');
+    const imageClearCheck = document.getElementById('image-clear-check');
+    const trashIndicator = document.getElementById('trashIndicator');
+    const undoBtn = document.getElementById('undoBtn');
+    const avatarContainer = document.getElementById('avatarContainer');
 
-    imageContainer.addEventListener('click', (e) => {
-        if (e.target !== imageInput && imageInput) imageInput.click();
-    });
+    // Handle clear photo
+    if(clearPhotoBtn) {
+        clearPhotoBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            imageClearCheck.checked = true;
+            trashIndicator.style.display = 'flex';
+            undoBtn.classList.remove('d-none');
+            avatarContainer.style.opacity = '0.5';
+            avatarContainer.style.filter = 'grayscale(1)';
+        });
+    }
 
-    if (imageInput) {
-        imageInput.classList.add('form-control-sm', 'mx-auto');
-        imageInput.addEventListener('change', function () {
-            if (this.files && this.files[0]) {
+    // Handle undo clear
+    if(undoBtn) {
+        undoBtn.addEventListener('click', () => {
+            imageClearCheck.checked = false;
+            trashIndicator.style.display = 'none';
+            undoBtn.classList.add('d-none');
+            avatarContainer.style.opacity = '1';
+            avatarContainer.style.filter = 'none';
+        });
+    }
+
+    if(imageInput) {
+        imageInput.addEventListener('change', function(e) {
+            const files = e.target.files;
+            if (files && files.length > 0) {
                 const reader = new FileReader();
-                reader.onload = (e) => {
-                    imagePreview.src = e.target.result;
-                    imagePreview.style.display = 'block';
-                    imagePlaceholder.style.display = 'none';
+                reader.onload = function(event) {
+                    cropImage.src = event.target.result;
+                    cropModal.show();
                 };
-                reader.readAsDataURL(this.files[0]);
+                reader.readAsDataURL(files[0]);
             }
         });
     }
+
+    cropModalEl.addEventListener('shown.bs.modal', function() {
+        cropper = new Cropper(cropImage, {
+            aspectRatio: 1,
+            viewMode: 2,
+            dragMode: 'move',
+            autoCropArea: 1,
+            restore: false,
+            guides: true,
+            center: true,
+            highlight: false,
+            cropBoxMovable: true,
+            cropBoxResizable: true,
+            toggleDragModeOnDblclick: false,
+        });
+    });
+
+    cropModalEl.addEventListener('hidden.bs.modal', function() {
+        if (cropper) {
+            cropper.destroy();
+            cropper = null;
+        }
+        // If they close modal without cropping, we might want to clear input
+        // but often better to just leave it.
+    });
+
+    document.getElementById('cropBtn').addEventListener('click', function() {
+        const canvas = cropper.getCroppedCanvas({
+            width: 800,
+            height: 800,
+        });
+
+        canvas.toBlob(function(blob) {
+            const url = URL.createObjectURL(blob);
+            imagePreview.src = url;
+            
+            // Create a new File object
+            const file = new File([blob], "pet_photo.jpg", { type: "image/jpeg" });
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            imageInput.files = dataTransfer.files;
+
+            // Reset clear status if new image is picked
+            if(imageClearCheck) imageClearCheck.checked = false;
+            if(trashIndicator) trashIndicator.style.display = 'none';
+            if(undoBtn) undoBtn.classList.add('d-none');
+            if(avatarContainer) {
+                avatarContainer.style.opacity = '1';
+                avatarContainer.style.filter = 'none';
+            }
+            
+            cropModal.hide();
+        }, 'image/jpeg');
+    });
 </script>
 {% endblock %}

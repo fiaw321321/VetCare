@@ -50,6 +50,16 @@ class Pet(models.Model):
             Pet.objects.filter(pk=self.pk).update(customer_id=self.customer_id, microchip_number=self.microchip_number)
     def __str__(self):
         return f"{self.name} ({self.species})"
+
+    @property
+    def age(self):
+        if not self.birth_date:
+            return None
+        from datetime import date
+        today = date.today()
+        # Calculate age in years
+        age = today.year - self.birth_date.year - ((today.month, today.day) < (self.birth_date.month, self.birth_date.day))
+        return age
 class Vet(models.Model):
     doctor_id = models.CharField(max_length=50, blank=True, null=True, verbose_name='รหัสแพทย์')
     license_no = models.CharField(max_length=50, blank=True, null=True, verbose_name='เลขที่ใบอนุญาตประกอบวิชาชีพ')

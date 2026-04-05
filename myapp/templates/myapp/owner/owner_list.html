@@ -17,7 +17,7 @@
             <span class="input-group-text border-0 bg-white ps-4">
                 <i class="fas fa-search text-muted"></i>
             </span>
-            <input type="text" name="q" value="{{ q|default:'' }}" class="form-control border-0 py-3 shadow-none" placeholder="ค้นหารหัสลูกค้า, ชื่อ, นามสกุล, เบอร์โทร หรือที่อยู่...">
+            <input type="text" name="q" id="searchInput" value="{{ q|default:'' }}" class="form-control border-0 py-3 shadow-none" placeholder="ค้นหารหัสลูกค้า, ชื่อ, นามสกุล, เบอร์โทร หรือที่อยู่...">
             <button type="submit" class="btn btn-success px-4 fw-bold">ค้นหา</button>
             {% if q %}
                 <a href="{% url 'owner_list' %}" class="btn btn-outline-secondary border-0 d-flex align-items-center px-3">
@@ -27,6 +27,7 @@
         </div>
     </form>
 
+    <div id="resultsContainer">
     {% if owners %}
     
     <div class="card border-0 shadow-sm rounded-4 d-none d-lg-block">
@@ -133,12 +134,39 @@
         {% include 'myapp/includes/pagination.html' %}
     </div>
 
-    {% else %}
-    <div class="text-center py-5 bg-white rounded-4 shadow-sm border" style="border-style: dashed !important;">
-        <div class="display-1 text-muted opacity-25 mb-3"><i class="fas fa-users-slash"></i></div>
-        <h4 class="text-muted">ไม่พบข้อมูลรายชื่อเจ้าของ</h4>
-        <p class="text-muted">ลองค้นหาด้วยคำอื่น หรือเพิ่มข้อมูลใหม่เข้าสู่ระบบ</p>
-    </div>
     {% endif %}
+    </div>
 </div>
+<script>
+    // Real-time AJAX search setup
+    const searchInput = document.getElementById('searchInput');
+    const resultsContainer = document.getElementById('resultsContainer');
+    let searchTimeout;
+
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            const query = this.value;
+            const url = new URL(window.location.href);
+            url.searchParams.set('q', query);
+
+            searchTimeout = setTimeout(() => {
+                fetch(url, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const newResults = doc.getElementById('resultsContainer');
+                    if (newResults) {
+                        resultsContainer.innerHTML = newResults.innerHTML;
+                        window.history.replaceState({path: url.toString()}, '', url.toString());
+                    }
+                })
+                .catch(error => console.error('Error fetching search results:', error));
+            }, 300);
+        });
+    }
+</script>
 {% endblock %}

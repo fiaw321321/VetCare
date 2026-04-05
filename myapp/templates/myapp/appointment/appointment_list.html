@@ -7,6 +7,9 @@
 
 <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>
 
 <style>
     /* Responsive Table to Card layout */
@@ -76,7 +79,7 @@
                         <span class="input-group-text border-0 bg-transparent ps-3">
                             <i class="fas fa-calendar-alt text-muted"></i>
                         </span>
-                        <input type="date" name="start_date" value="{{ start_date }}" class="form-control border-0 py-2 shadow-none" style="background: transparent; color: var(--bs-body-color);">
+                        <input type="text" name="start_date" id="startDateInput" value="{{ start_date }}" class="form-control border-0 py-2 shadow-none datepicker" style="background: transparent; color: var(--bs-body-color);" placeholder="เลือกวันที่...">
                     </div>
                 </div>
 
@@ -87,7 +90,7 @@
                         <span class="input-group-text border-0 bg-transparent ps-3">
                             <i class="fas fa-calendar-alt text-muted"></i>
                         </span>
-                        <input type="date" name="end_date" value="{{ end_date }}" class="form-control border-0 py-2 shadow-none" style="background: transparent; color: var(--bs-body-color);">
+                        <input type="text" name="end_date" id="endDateInput" value="{{ end_date }}" class="form-control border-0 py-2 shadow-none datepicker" style="background: transparent; color: var(--bs-body-color);" placeholder="เลือกวันที่...">
                     </div>
                 </div>
 
@@ -98,7 +101,7 @@
                         <span class="input-group-text border-0 bg-transparent ps-3">
                             <i class="fas fa-search text-muted"></i>
                         </span>
-                        <input type="text" name="q" value="{{ q|default:'' }}" class="form-control border-0 py-2 shadow-none" style="background: transparent; color: var(--bs-body-color);" placeholder="ชื่อสัตว์, บริการ, แพทย์...">
+                        <input type="text" name="q" id="searchInput" value="{{ q|default:'' }}" class="form-control border-0 py-2 shadow-none" style="background: transparent; color: var(--bs-body-color);" placeholder="ชื่อสัตว์, บริการ, แพทย์...">
                         <button type="submit" class="btn btn-success px-4 fw-bold">กรองข้อมูล</button>
                         {% if q or start_date or end_date %}
                             <a href="?mode={{ mode }}" class="btn btn-outline-secondary border-0 d-flex align-items-center px-3" style="background: transparent;">
@@ -111,6 +114,7 @@
         </form>
     </div>
 
+    <div id="resultsContainer">
     {% if mode == 'calendar' %}
     
     <div class="card border-0 shadow-sm rounded-4 p-4 mb-4" style="background: var(--card-bg);">
@@ -154,8 +158,12 @@
                     <tr>
                         <td class="ps-md-4 item-main" data-label="">
                             <div class="d-flex align-items-center">
-                                <div class="bg-light p-2 rounded-circle me-3 border flex-shrink-0" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;">
-                                    <i class="fas fa-paw text-success fs-5"></i>
+                                <div class="bg-light rounded-circle me-3 border flex-shrink-0" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                    {% if apt.pet.image %}
+                                        <img src="{{ apt.pet.image.url }}" alt="{{ apt.pet.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                    {% else %}
+                                        <i class="fas fa-paw text-success fs-5"></i>
+                                    {% endif %}
                                 </div>
                                 <div class="text-start">
                                     <strong class="text-heading d-block fs-6 mb-1">{{ apt.pet.name }}</strong>
@@ -234,41 +242,97 @@
     </div>
     {% endif %}
     {% endif %}
+    </div>
 </div>
 
-{% if mode == 'calendar' %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        var calendarEl = document.getElementById('calendar');
-        var calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth',
-            initialDate: '{{ current_date|date:"Y-m-d" }}',
-            headerToolbar: {
-                left: '',
-                center: 'title',
-                right: 'dayGridMonth,timeGridWeek,timeGridDay'
-            },
-            locale: 'th',
-            buttonText: {
-                today: 'วันนี้',
-                month: 'เดือน',
-                week: 'สัปดาห์',
-                day: 'วัน'
-            },
-            events: {{ events_json|safe }},
-            eventClick: function(info) {
-                if (info.event.url) {
-                    window.location.href = info.event.url;
-                    info.jsEvent.preventDefault();
-                }
-            },
-            eventDidMount: function(info) {
-                // Style adjustment for event
-                info.el.style.fontSize = '0.8rem';
-                info.el.style.fontWeight = '600';
-            }
+        // Flatpickr initialization
+        flatpickr(".datepicker", {
+            dateFormat: "Y-m-d",
+            locale: "th",
+            altInput: true,
+            altFormat: "j F Y",
+            allowInput: true,
+            disableMobile: "true",
+            onChange: function() { triggerSearch(); }
         });
-        calendar.render();
+
+        // AJAX Search Logic
+        const searchInput = document.getElementById('searchInput');
+        const startDateInput = document.getElementById('startDateInput');
+        const endDateInput = document.getElementById('endDateInput');
+        const resultsContainer = document.getElementById('resultsContainer');
+        let searchTimeout;
+
+        function triggerSearch() {
+            clearTimeout(searchTimeout);
+            const query = searchInput.value;
+            const start = startDateInput.value;
+            const end = endDateInput.value;
+            const mode = '{{ mode }}';
+
+            const url = new URL(window.location.href);
+            url.searchParams.set('q', query);
+            url.searchParams.set('start_date', start);
+            url.searchParams.set('end_date', end);
+
+            searchTimeout = setTimeout(() => {
+                fetch(url, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const newContent = doc.getElementById('resultsContainer');
+                    if (newContent) {
+                        resultsContainer.innerHTML = newContent.innerHTML;
+                        window.history.replaceState({path: url.toString()}, '', url.toString());
+                        
+                        // Re-initialize calendar if in calendar mode
+                        if (mode === 'calendar' && typeof initCalendar === 'function') {
+                            initCalendar();
+                        }
+                    }
+                })
+                .catch(error => console.error('Error fetching results:', error));
+            }, 300);
+        }
+
+        if (searchInput) searchInput.addEventListener('input', triggerSearch);
+
+        // Calendar Logic
+        {% if mode == 'calendar' %}
+        window.initCalendar = function() {
+            var calendarEl = document.getElementById('calendar');
+            if (!calendarEl) return;
+            
+            // Extract events from the newly loaded HTML if it's an AJAX call
+            // Or use the initial events_json
+            var eventsData = {{ events_json|safe }};
+            
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                initialDate: '{{ current_date|date:"Y-m-d" }}',
+                headerToolbar: {
+                    left: '',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                locale: 'th',
+                events: eventsData,
+                eventClick: function(info) {
+                    if (info.event.url) {
+                        window.location.href = info.event.url;
+                        info.jsEvent.preventDefault();
+                    }
+                }
+            });
+            calendar.render();
+        };
+        initCalendar();
+        {% endif %}
     });
 </script>
 <style>
@@ -331,5 +395,4 @@
     .fc-daygrid-day-number { font-weight: 700; color: #64748b; padding: 10px !important; }
     .fc-col-header-cell-cushion { font-weight: 700; color: var(--text-heading); text-decoration: none; padding: 12px !important; }
 </style>
-{% endif %}
 {% endblock %}

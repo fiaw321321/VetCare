@@ -445,6 +445,7 @@
         </div>
     </div>
 
+    <div id="resultsContainer">
     {% if medicines %}
         {% if mode == 'grid' %}
             
@@ -638,6 +639,7 @@
             <a href="{% url 'medicine_create' %}" class="btn btn-success rounded-pill mt-3 px-4">เพิ่มรายการใหม่</a>
         </div>
     {% endif %}
+    </div>
 </div>
 
 
@@ -766,49 +768,73 @@ document.addEventListener('click', function(e) {
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('advSearchForm');
-    if (!form) return;
-
-    // Auto submit on sort change
+    const searchInput = document.getElementById('searchInput');
     const sortSelect = document.getElementById('sortSelect');
-    if (sortSelect) { 
-        sortSelect.addEventListener('change', () => form.submit()); 
-    }
-
-    // Auto submit on toggle (Low Stock)
     const lowStockSwitch = document.getElementById('lowStockSwitch');
-    if (lowStockSwitch) { 
-        lowStockSwitch.addEventListener('change', () => form.submit()); 
+    const catRadios = document.querySelectorAll('.filter-cat');
+    const resultsContainer = document.getElementById('resultsContainer');
+    
+    if (!form || !resultsContainer) return;
+
+    let searchTimeout;
+
+    function triggerSearch() {
+        clearTimeout(searchTimeout);
+        const formData = new FormData(form);
+        const params = new URLSearchParams(formData);
+        const url = new URL(form.action || window.location.href, window.location.origin);
+        
+        // Populate URL params from form data
+        for (const [key, value] of params) {
+            url.searchParams.set(key, value);
+        }
+        
+        // Checkboxes handling
+        if (!lowStockSwitch.checked) {
+            url.searchParams.delete('low_stock');
+        }
+
+        searchTimeout = setTimeout(() => {
+            resultsContainer.classList.add('opacity-50');
+            fetch(url, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(response => response.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newResults = doc.getElementById('resultsContainer');
+                if (newResults) {
+                    resultsContainer.innerHTML = newResults.innerHTML;
+                    window.history.replaceState({path: url.toString()}, '', url.toString());
+                }
+                resultsContainer.classList.remove('opacity-50');
+            })
+            .catch(error => {
+                console.error('Error fetching search results:', error);
+                resultsContainer.classList.remove('opacity-50');
+            });
+        }, 300);
     }
 
-    // Auto submit on filter chips (Category)
-    const catRadios = document.querySelectorAll('.filter-cat');
-    catRadios.forEach(radio => {
-        radio.addEventListener('change', () => {
-             form.classList.add('opacity-50'); // Visual indicator
-             form.submit();
+    if (searchInput) {
+        searchInput.addEventListener('input', triggerSearch);
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') e.preventDefault();
         });
+    }
+
+    if (sortSelect) sortSelect.addEventListener('change', triggerSearch);
+    if (lowStockSwitch) lowStockSwitch.addEventListener('change', triggerSearch);
+    
+    catRadios.forEach(radio => {
+        radio.addEventListener('change', triggerSearch);
     });
 
-    // Instant Search Setup (Debounce Input)
-    const searchInput = document.getElementById('searchInput');
-    if (searchInput) {
-        let debounceTimer;
-        searchInput.addEventListener('input', () => {
-             // Delay submission by 800ms to avoid spamming requests while typing
-             clearTimeout(debounceTimer);
-             debounceTimer = setTimeout(() => {
-                 form.classList.add('opacity-50');
-                 form.submit();
-             }, 800);
-        });
-        
-        // Move cursor to the end of input if keeping state
-        const val = searchInput.value;
-        if(val && document.activeElement !== searchInput) {
-            searchInput.focus();
-            searchInput.setSelectionRange(val.length, val.length);
-        }
-    }
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        triggerSearch();
+    });
 });
 </script>
 {% endblock %}
