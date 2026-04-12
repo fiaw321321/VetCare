@@ -27,7 +27,8 @@
     /* Grid Layout */
     .vet-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(280px, 350px));
+        justify-content: center;
         gap: 2rem;
     }
 
@@ -112,7 +113,9 @@
     .photo-frame {
         width: 110px;
         height: 110px;
-        margin: 0 auto 1.5rem;
+        margin-left: auto;
+        margin-right: auto;
+        margin-bottom: 1.5rem;
         border-radius: 35px;
         overflow: hidden;
         background: #f8fafc;
@@ -129,7 +132,11 @@
     .photo-frame .empty-photo {
         font-size: 3rem;
         color: #cbd5e1;
-        line-height: 100px;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     /* Info Details */
@@ -291,14 +298,16 @@
 
             <div class="card-profile-body">
                 
-                <div class="photo-frame shadow-sm">
-                    {% if vet.image %}
-                        <img src="{{ vet.image.url }}" alt="{{ vet.first_name }}">
-                    {% else %}
-                        <div class="empty-photo">
-                            <i class="fas fa-user-md"></i>
-                        </div>
-                    {% endif %}
+                <div class="d-flex justify-content-center w-100 mb-4">
+                    <div class="photo-frame shadow-sm" style="margin: 0 !important;">
+                        {% if vet.image %}
+                            <img src="{{ vet.image.url }}" alt="{{ vet.first_name }}">
+                        {% else %}
+                            <div class="empty-photo">
+                                <i class="fas fa-user-md"></i>
+                            </div>
+                        {% endif %}
+                    </div>
                 </div>
 
                 
