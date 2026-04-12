@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+bin/
+lib/
+include/
+dist/
+build/
+.env
+
+# Django log
+*.log
+
+# VS Code / IDE
+.vscode/
+.idea/
+
+# Maintenance folder (ที่เราเก็บสคริปต์เก่าไว้)
+_maintenance_scripts/
+cleanup_code.py
