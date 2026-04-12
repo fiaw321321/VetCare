@@ -199,6 +199,12 @@ def sql_clinic_dashboard(request):
             clinic_total_revenue = "{:,.2f}".format(float(revenue_result)) if revenue_result else "0.00"
         except Exception:
             clinic_total_revenue = "0.00"
+        try:
+            cursor.execute("SELECT SUM(stock * selling_price) FROM myapp_medicine")
+            stock_result = cursor.fetchone()[0]
+            clinic_total_stock_value = "{:,.2f}".format(float(stock_result)) if stock_result else "0.00"
+        except Exception:
+            clinic_total_stock_value = "0.00"
     from django.conf import settings
     engine = settings.DATABASES['default']['ENGINE']
     if 'mssql' in engine:
@@ -223,6 +229,8 @@ def sql_clinic_dashboard(request):
         'todays_appointments': apt_rows,
         'vet_workload': vet_rows,
         'clinic_total_revenue': clinic_total_revenue,
+        'clinic_total_stock_value': clinic_total_stock_value,
+
         'pets': pets,
         'vets': Vet.objects.all(),
         'medicines': medicines,
@@ -1562,7 +1570,7 @@ def ajax_execute_scalar(request):
                     return JsonResponse({'success': True, 'result': result})
                 elif func_name == 'fn_FormattedPetName':
                     pet_id = request.POST.get('pet_id')
-                    cursor.execute("SELECT name || ' (' || species || ')' FROM myapp_pet WHERE id = %s", [pet_id])
+                    cursor.execute("SELECT name || ' (' || species || ')' FROM myapp_pet WHERE id = ?", [pet_id])
                     result = cursor.fetchone()[0]
                     return JsonResponse({'success': True, 'result': result})
                 elif func_name == 'fn_GetMedicineStockValue':
@@ -1571,34 +1579,34 @@ def ajax_execute_scalar(request):
                     return JsonResponse({'success': True, 'result': float(result) if result else 0.0})
                 elif func_name == 'fn_GetPetVisitCount':
                     pet_id = request.POST.get('pet_id')
-                    cursor.execute("SELECT COUNT(*) FROM myapp_medicalrecord WHERE pet_id = %s", [pet_id])
+                    cursor.execute("SELECT COUNT(*) FROM myapp_medicalrecord WHERE pet_id = ?", [pet_id])
                     result = cursor.fetchone()[0]
                     return JsonResponse({'success': True, 'result': result})
                 elif func_name == 'fn_GetTotalSpending':
                     owner_id = request.POST.get('owner_id')
-                    cursor.execute("SELECT SUM(cost) FROM myapp_medicalrecord mr JOIN myapp_pet p ON mr.pet_id = p.id WHERE p.owner_id = %s", [owner_id])
+                    cursor.execute("SELECT SUM(cost) FROM myapp_medicalrecord mr JOIN myapp_pet p ON mr.pet_id = p.id WHERE p.owner_id = ?", [owner_id])
                     result = cursor.fetchone()[0]
-                    return JsonResponse({'success': True, 'result': "{:,.2f}".format(float(result)) if result else "0.00"})
+                    return JsonResponse({'success': True, 'result': float(result) if result else 0.0})
                 elif func_name == 'sp_GetMonthlyRevenue':
                     year, month = request.POST.get('year'), request.POST.get('month')
                     total = MedicalRecord.objects.filter(visit_date__year=year, visit_date__month=month).aggregate(total=models.Sum('cost'))['total'] or 0
-                    return JsonResponse({'success': True, 'result': "{:,.2f}".format(float(total))})
+                    return JsonResponse({'success': True, 'result': float(total)})
                 elif func_name == 'fn_GetTotalClinicRevenue':
                     total = MedicalRecord.objects.aggregate(total=models.Sum('cost'))['total'] or 0
-                    return JsonResponse({'success': True, 'result': "{:,.2f}".format(float(total))})
+                    return JsonResponse({'success': True, 'result': float(total)})
                 elif func_name == 'update_phone_via_view':
                     owner_id, new_phone = request.POST.get('owner_id'), request.POST.get('new_phone')
                     print(f"DEBUG SQL: Updating OwnerID={owner_id} to Phone={new_phone}")
-                    cursor.execute("UPDATE v_ClinicDashboard SET OwnerPhone = %s WHERE OwnerID = %s", [new_phone, owner_id])
+                    cursor.execute("UPDATE v_ClinicDashboard SET OwnerPhone = ? WHERE OwnerID = ?", [new_phone, owner_id])
                     return JsonResponse({'success': True, 'message': 'อัปเดตเบอร์โทรผ่าน View (SQLite Trigger) สำเร็จ'})
                 elif func_name == 'update_pet_name_via_view':
                     pet_id, new_pet_name = request.POST.get('pet_id'), request.POST.get('new_pet_name')
                     print(f"DEBUG SQL: Updating PetInternalID={pet_id} to Name={new_pet_name}")
-                    cursor.execute("UPDATE v_ClinicDashboard SET PetName = %s WHERE PetInternalID = %s", [new_pet_name, pet_id])
+                    cursor.execute("UPDATE v_ClinicDashboard SET PetName = ? WHERE PetInternalID = ?", [new_pet_name, pet_id])
                     return JsonResponse({'success': True, 'message': 'อัปเดตชื่อสัตว์ผ่าน View (SQLite Trigger) สำเร็จ'})
                 elif func_name == 'update_vet_hours_via_view':
                     vet_id, new_hours = request.POST.get('vet_id'), request.POST.get('new_hours')
-                    cursor.execute("UPDATE v_VetWorkload SET working_hours = %s WHERE vet_id = %s", [new_hours, vet_id])
+                    cursor.execute("UPDATE v_VetWorkload SET working_hours = ? WHERE vet_id = ?", [new_hours, vet_id])
                     return JsonResponse({'success': True, 'message': 'อัปเดตชั่วโมงปฏิบัติงานผ่าน View (SQLite Trigger) สำเร็จ'})
                 else:
                     return JsonResponse({'success': False, 'error': 'Unknown function mapping'})
