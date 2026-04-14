@@ -2,7 +2,6 @@
 {% load static %}
 
 {% block content %}
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
 
 <style>
     :root {
@@ -14,7 +13,7 @@
 
     body {
         background-color: var(--bg-soft);
-        font-family: 'Inter', 'Prompt', sans-serif;
+        font-family: 'Kanit', sans-serif;
         color: #1e293b;
     }
 
@@ -178,7 +177,7 @@
     }
 
     .text-thai {
-        font-family: 'Prompt', sans-serif;
+        font-family: 'Kanit', sans-serif;
     }
 </style>
 
@@ -227,7 +226,7 @@
                                     </div>
                                     <div>
                                         <p class="text-muted mb-0 small fw-bold text-uppercase">มูลค่าสต็อกยาล่าสุด</p>
-                                        <h3 class="fw-bold mb-1" id="kpi_stock_value">฿0.00</h3>
+                                        <h3 class="fw-bold mb-1" id="kpi_stock_value">฿{{ clinic_total_stock_value|default:"0.00" }}</h3>
                                     </div>
                                 </div>
                             </div>
@@ -1140,7 +1139,7 @@
             if(json.success) {
                 let displayResult = json.result || '0';
                 if(funcName.includes('Value') || funcName.includes('Spending') || funcName.includes('Revenue')) {
-                    const num = parseFloat(displayResult);
+                    const num = parseFloat(displayResult.toString().replace(/,/g, ''));
                     if (!isNaN(num)) {
                         displayResult = '฿' + num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                     } else if (!displayResult.toString().includes('฿')) {
@@ -1241,10 +1240,11 @@
 
     // Auto-load values when document is ready
     document.addEventListener("DOMContentLoaded", function() {
-        // Delay slightly to ensure CSRF and DOM elements are ready
         setTimeout(() => {
-            executeScalar('fn_GetMedicineStockValue', {}, 'kpi_stock_value');
-            executeScalar('fn_GetTotalClinicRevenue', {}, 'kpi_total_revenue');
+            // Initial KPIs are now pre-rendered by Django for instant load
+            // Only keeping if manual refresh is needed, but removing automatic delay on load
+            // executeScalar('fn_GetMedicineStockValue', {}, 'kpi_stock_value');
+            // executeScalar('fn_GetTotalClinicRevenue', {}, 'kpi_total_revenue');
         }, 500);
     });
 </script>

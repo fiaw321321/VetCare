@@ -180,7 +180,8 @@
         .nav-sidebar .nav-link {
             color: #94a3b8;
             border-radius: 14px;
-            padding: 0.9rem 1.1rem;
+            padding: 0 1.1rem;
+            height: 48px;
             font-weight: 500;
             font-size: 0.95rem;
             display: flex;
@@ -200,7 +201,6 @@
         .nav-sidebar .nav-link:hover {
             color: #fff;
             background: rgba(255, 255, 255, 0.05);
-            transform: translateX(5px);
         }
 
         .nav-sidebar .nav-link.active {
@@ -214,8 +214,9 @@
             content: "";
             position: absolute;
             left: 0;
-            top: 25%;
-            height: 50%;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 24px;
             width: 4px;
             background: #38bdf8;
             border-radius: 0 4px 4px 0;
@@ -226,6 +227,37 @@
         .nav-sidebar .nav-link.active i {
             color: #38bdf8;
             transform: scale(1.1);
+        }
+
+        /* Admin Links Custom Themes */
+        .nav-sidebar .nav-link.theme-gold,
+        .nav-sidebar .nav-link.theme-gold i {
+            color: #fbbf24;
+        }
+        .nav-sidebar .nav-link.theme-gold.active {
+            color: #fff;
+            background: rgba(251, 191, 36, 0.12);
+            box-shadow: inset 0 0 20px rgba(251, 191, 36, 0.05);
+        }
+        .nav-sidebar .nav-link.theme-gold.active::before {
+            background: #fbbf24;
+            box-shadow: 2px 0 10px rgba(251, 191, 36, 0.5);
+        }
+        .nav-sidebar .nav-link.theme-gold:hover i,
+        .nav-sidebar .nav-link.theme-gold.active i { 
+            color: #fbbf24;
+        }
+
+        .nav-sidebar .nav-link.theme-cyan,
+        .nav-sidebar .nav-link.theme-cyan i {
+            color: #38bdf8;
+        }
+        .nav-sidebar .nav-link.theme-cyan.active {
+            color: #fff;
+        }
+        .nav-sidebar .nav-link.theme-cyan:hover i,
+        .nav-sidebar .nav-link.theme-cyan.active i { 
+            color: #38bdf8;
         }
 
         .sidebar-footer {
@@ -268,13 +300,14 @@
             align-items: center;
             gap: 12px;
             margin-bottom: 1.25rem;
-            padding: 0 0.5rem;
+            padding: 0;
         }
 
         .avatar-circle {
             width: 36px;
             height: 36px;
-            border-radius: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
             background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);
             display: flex;
             align-items: center;
@@ -403,12 +436,12 @@
                 </li>
                 {% if request.user.is_superuser %}
                 <li class="nav-item">
-                    <a class="nav-link {% if '/users' in request.path %}active{% endif %}" href="{% url 'admin_user_management' %}" style="color: #fbbf24;">
+                    <a class="nav-link theme-gold {% if '/users' in request.path %}active{% endif %}" href="{% url 'admin_user_management' %}">
                         <i class="fas fa-crown"></i> จัดการยศ/สิทธิ์
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if '/sql-dashboard' in request.path %}active{% endif %}" href="{% url 'sql_clinic_dashboard' %}" style="color: #38bdf8;">
+                    <a class="nav-link theme-cyan {% if '/sql-dashboard' in request.path %}active{% endif %}" href="{% url 'sql_clinic_dashboard' %}">
                         <i class="fas fa-database"></i> SQL Dashboard (ขั้นสูง)
                     </a>
                 </li>
@@ -448,13 +481,7 @@
         
         <div class="d-flex align-items-center gap-3">
             
-            <div class="glass-widget d-flex align-items-center me-3 border-0 shadow-sm" style="background: rgba(255,255,255,0.9); padding: 5px 15px;">
-                <img src="/media/logo_images/new_logo_spu.png" alt="University Logo" style="height: 28px;" class="me-2">
-                <div class="fw-bold text-dark d-none d-xl-block" style="font-size: 0.8rem; border-left: 2px solid #ddd; padding-left: 10px; line-height: 1.2;">
-                    คณะเทคโนโลยีสารสนเทศ<br>
-                    <span class="text-primary small" style="font-size: 0.65rem;">มหาวิทยาลัยศรีปทุม</span>
-                </div>
-            </div>
+
 
             
             <div class="glass-widget d-none d-md-flex align-items-center">
