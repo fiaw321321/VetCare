@@ -15,10 +15,10 @@ class OwnerForm(forms.ModelForm):
             'phone': 'เบอร์มือถือ (Mobile)',
         }
         widgets = {
-            'customer_id': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'รหัสลูกค้า'}),
+            'customer_id': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'สร้างอัตโนมัติเมื่อบันทึก', 'readonly': 'readonly'}),
             'first_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'กรอกชื่อ'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'กรอกนามสกุล'}),
-            'phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'เบอร์มือถือ'}),
+            'phone': forms.TextInput(attrs={'type': 'tel', 'class': 'form-control', 'placeholder': 'ระบุเบอร์โทรศัพท์ 10 หลัก', 'maxlength': '10', 'oninput': "this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)"}),
         }
 class ClientProfileForm(forms.ModelForm):
     address_1 = forms.CharField(max_length=255, required=False, widget=forms.Textarea(attrs={'class': 'form-control mb-1', 'placeholder': 'ที่อยู่บรรทัดที่ 1 (บ้านเลขที่, ซอย, ถนน)', 'rows': 1}))
@@ -34,7 +34,7 @@ class ClientProfileForm(forms.ModelForm):
         widgets = {
             'first_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'กรอกชื่อ'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'กรอกนามสกุล'}),
-            'phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'เบอร์มือถือ'}),
+            'phone': forms.TextInput(attrs={'type': 'tel', 'class': 'form-control', 'placeholder': 'ระบุเบอร์โทรศัพท์ 10 หลัก', 'maxlength': '10', 'oninput': "this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)"}),
         }
 class VetForm(forms.ModelForm):
     class Meta:
@@ -47,7 +47,7 @@ class VetForm(forms.ModelForm):
             'working_hours', 'remarks', 'image'
         ]
         widgets = {
-            'doctor_id': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'รหัสแพทย์'}),
+            'doctor_id': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'สร้างอัตโนมัติเมื่อบันทึก', 'readonly': 'readonly'}),
             'license_no': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'เลขที่ใบอนุญาต'}),
             'role_level': forms.Select(attrs={'class': 'form-select'}),
             'first_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'ชื่อ'}),
@@ -59,7 +59,7 @@ class VetForm(forms.ModelForm):
             'license_expiry': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'address_1': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'ที่อยู่บรรทัดที่ 1 (บ้านเลขที่, ซอย, ถนน)'}),
             'address_2': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'ที่อยู่บรรทัดที่ 2 (ตำบล, อำเภอ, จังหวัด, รหัสไปรษณีย์)'}),
-            'phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'เบอร์มือถือ'}),
+            'phone': forms.TextInput(attrs={'type': 'tel', 'class': 'form-control', 'placeholder': 'ระบุเบอร์โทรศัพท์ 10 หลัก', 'maxlength': '10', 'oninput': "this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)"}),
             'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'อีเมล'}),
             'working_hours': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'เช่น จ-ศ 08:00-17:00', 'rows': 3}),
             'remarks': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'หมายเหตุ', 'rows': 2}),
@@ -117,8 +117,8 @@ class PetForm(forms.ModelForm):
         ]
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'ชื่อสัตว์เลี้ยง'}),
-            'customer_id': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'รหัสลูกค้า'}),
-            'microchip_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'เลขที่ชิป'}),
+            'customer_id': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'สร้างอัตโนมัติเมื่อบันทึก', 'readonly': 'readonly'}),
+            'microchip_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'สร้างอัตโนมัติเมื่อบันทึก', 'readonly': 'readonly'}),
             'price_level': forms.Select(attrs={'class': 'form-select'}),
             'sex': forms.RadioSelect(attrs={'class': 'form-check-input'}),
             'breed': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'สายพันธุ์'}),

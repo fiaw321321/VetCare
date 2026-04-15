@@ -301,6 +301,7 @@ def quick_register_patient(request):
         owner_phone = request.POST.get('owner_phone')
         pet_name = request.POST.get('pet_name')
         pet_species = request.POST.get('pet_species')
+        pet_breed = request.POST.get('pet_breed', '') # Optional breed
         try:
             from django.db import transaction
             with transaction.atomic():
@@ -312,7 +313,8 @@ def quick_register_patient(request):
                 Pet.objects.create(
                     owner=owner,
                     name=pet_name,
-                    species=pet_species
+                    species=pet_species,
+                    breed=pet_breed
                 )
             messages.success(request, f"สำเร็จ: สร้างประวัติเจ้าของใหม่ ({owner_first}) และเชื่อมโยงสัตว์เลี้ยง ({pet_name}) เรียบร้อยแล้ว")
         except Exception as e:
@@ -1564,13 +1566,13 @@ def ajax_execute_scalar(request):
                 if func_name == 'fn_CalculatePetAge':
                     birth_date = request.POST.get('birth_date')
                     if not birth_date: return JsonResponse({'success': False, 'error': 'Missing birth_date'})
-                    cursor.execute("SELECT (strftime('%Y', 'now') - strftime('%Y', ?)) || ' ปี'", [birth_date])
+                    cursor.execute("SELECT (strftime('%Y', 'now') - strftime('%Y', %s)) || ' ปี'", [birth_date])
                     val = cursor.fetchone()
                     result = val[0] if val and val[0] else "N/A"
                     return JsonResponse({'success': True, 'result': result})
                 elif func_name == 'fn_FormattedPetName':
                     pet_id = request.POST.get('pet_id')
-                    cursor.execute("SELECT name || ' (' || species || ')' FROM myapp_pet WHERE id = ?", [pet_id])
+                    cursor.execute("SELECT name || ' (' || species || ')' FROM myapp_pet WHERE id = %s", [pet_id])
                     result = cursor.fetchone()[0]
                     return JsonResponse({'success': True, 'result': result})
                 elif func_name == 'fn_GetMedicineStockValue':
@@ -1579,12 +1581,12 @@ def ajax_execute_scalar(request):
                     return JsonResponse({'success': True, 'result': float(result) if result else 0.0})
                 elif func_name == 'fn_GetPetVisitCount':
                     pet_id = request.POST.get('pet_id')
-                    cursor.execute("SELECT COUNT(*) FROM myapp_medicalrecord WHERE pet_id = ?", [pet_id])
+                    cursor.execute("SELECT COUNT(*) FROM myapp_medicalrecord WHERE pet_id = %s", [pet_id])
                     result = cursor.fetchone()[0]
                     return JsonResponse({'success': True, 'result': result})
                 elif func_name == 'fn_GetTotalSpending':
                     owner_id = request.POST.get('owner_id')
-                    cursor.execute("SELECT SUM(cost) FROM myapp_medicalrecord mr JOIN myapp_pet p ON mr.pet_id = p.id WHERE p.owner_id = ?", [owner_id])
+                    cursor.execute("SELECT SUM(cost) FROM myapp_medicalrecord mr JOIN myapp_pet p ON mr.pet_id = p.id WHERE p.owner_id = %s", [owner_id])
                     result = cursor.fetchone()[0]
                     return JsonResponse({'success': True, 'result': float(result) if result else 0.0})
                 elif func_name == 'sp_GetMonthlyRevenue':
@@ -1597,19 +1599,34 @@ def ajax_execute_scalar(request):
                 elif func_name == 'update_phone_via_view':
                     owner_id, new_phone = request.POST.get('owner_id'), request.POST.get('new_phone')
                     print(f"DEBUG SQL: Updating OwnerID={owner_id} to Phone={new_phone}")
-                    cursor.execute("UPDATE v_ClinicDashboard SET OwnerPhone = ? WHERE OwnerID = ?", [new_phone, owner_id])
+                    cursor.execute("UPDATE v_ClinicDashboard SET OwnerPhone = %s WHERE OwnerID = %s", [new_phone, owner_id])
                     return JsonResponse({'success': True, 'message': 'อัปเดตเบอร์โทรผ่าน View (SQLite Trigger) สำเร็จ'})
                 elif func_name == 'update_pet_name_via_view':
                     pet_id, new_pet_name = request.POST.get('pet_id'), request.POST.get('new_pet_name')
                     print(f"DEBUG SQL: Updating PetInternalID={pet_id} to Name={new_pet_name}")
-                    cursor.execute("UPDATE v_ClinicDashboard SET PetName = ? WHERE PetInternalID = ?", [new_pet_name, pet_id])
+                    cursor.execute("UPDATE v_ClinicDashboard SET PetName = %s WHERE PetInternalID = %s", [new_pet_name, pet_id])
                     return JsonResponse({'success': True, 'message': 'อัปเดตชื่อสัตว์ผ่าน View (SQLite Trigger) สำเร็จ'})
                 elif func_name == 'update_vet_hours_via_view':
                     vet_id, new_hours = request.POST.get('vet_id'), request.POST.get('new_hours')
-                    cursor.execute("UPDATE v_VetWorkload SET working_hours = ? WHERE vet_id = ?", [new_hours, vet_id])
+                    cursor.execute("UPDATE v_VetWorkload SET working_hours = %s WHERE vet_id = %s", [new_hours, vet_id])
                     return JsonResponse({'success': True, 'message': 'อัปเดตชั่วโมงปฏิบัติงานผ่าน View (SQLite Trigger) สำเร็จ'})
                 else:
                     return JsonResponse({'success': False, 'error': 'Unknown function mapping'})
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)})
     return JsonResponse({'success': False, 'error': 'Invalid request method'})
+
+def ajax_get_breeds(request):
+    species = request.GET.get('species', '')
+    if species:
+        breeds = Pet.objects.filter(species=species).exclude(breed__isnull=True).exclude(breed__exact='').values_list('breed', flat=True).distinct()
+        return JsonResponse({'breeds': list(breeds)})
+    return JsonResponse({'breeds': []})
+
+def ajax_get_all_species(request):
+    species_list = Pet.objects.exclude(species__isnull=True).exclude(species__exact='').values_list('species', flat=True).distinct()
+    return JsonResponse({'species': list(species_list)})
+
+def ajax_get_all_breeds(request):
+    breed_list = Pet.objects.exclude(breed__isnull=True).exclude(breed__exact='').values_list('breed', flat=True).distinct()
+    return JsonResponse({'breeds': list(breed_list)})

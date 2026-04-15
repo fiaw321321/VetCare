@@ -4,6 +4,29 @@
 {% block content %}
 
 <style>
+    /* Add Tom Select CSS via CDN */
+    @import url('https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css');
+
+    /* Fix TomSelect clipping in Quick Registry */
+    #quickRegForm .ts-wrapper.form-control {
+        padding: 0 !important;
+        height: auto !important;
+        border: none !important;
+    }
+    #quickRegForm .ts-wrapper .ts-control {
+        min-height: 38px;
+        display: flex;
+        align-items: center;
+        background-color: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0.375rem 0.75rem;
+    }
+    #quickRegForm .ts-wrapper .ts-control input {
+        line-height: 1.5;
+        font-size: 1rem;
+    }
+
     :root {
         --primary-teal: #0d9488;
         --secondary-slate: #475569;
@@ -736,38 +759,42 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-4">
-                <form action="{% url 'quick_register_patient' %}" method="post">
+                <form id="quickRegForm" action="{% url 'quick_register_patient' %}" method="post">
                     {% csrf_token %}
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <div class="form-floating">
-                                <input type="text" name="owner_first_name" class="form-control bg-light border-0" placeholder="ชื่อ" required>
-                                <label>ชื่อเจ้าของ</label>
-                            </div>
+                            <label class="form-label small fw-bold text-muted ps-1 mb-1">ชื่อเจ้าของ</label>
+                            <input type="text" name="owner_first_name" class="form-control bg-light border-0 shadow-sm" placeholder="ระบุชื่อเจ้าของ" required>
                         </div>
                         <div class="col-md-6">
-                            <div class="form-floating">
-                                <input type="text" name="owner_last_name" class="form-control bg-light border-0" placeholder="นามสกุล" required>
-                                <label>นามสกุล</label>
-                            </div>
+                            <label class="form-label small fw-bold text-muted ps-1 mb-1">นามสกุล</label>
+                            <input type="text" name="owner_last_name" class="form-control bg-light border-0 shadow-sm" placeholder="ระบุนามสกุล" required>
                         </div>
                         <div class="col-12">
-                            <div class="form-floating">
-                                <input type="text" name="owner_phone" class="form-control bg-light border-0" placeholder="โทร" required>
-                                <label>เบอร์โทรศัพท์ติดต่อ</label>
-                            </div>
+                            <label class="form-label small fw-bold text-muted ps-1 mb-1">เบอร์โทรศัพท์ติดต่อ</label>
+                            <input type="tel" name="owner_phone" class="form-control bg-light border-0 shadow-sm" placeholder="08XXXXXXXX" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)" required>
                         </div>
-                        <div class="col-md-6">
-                            <div class="form-floating">
-                                <input type="text" name="pet_name" class="form-control bg-light border-0" placeholder="ชื่อ" required>
-                                <label>ชื่อสัตว์เลี้ยง</label>
-                            </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-muted ps-1 mb-1">ชื่อสัตว์เลี้ยง</label>
+                            <input type="text" name="pet_name" class="form-control bg-light border-0 shadow-sm" placeholder="ชื่อสัตว์เลี้ยง" required>
                         </div>
-                        <div class="col-md-6">
-                            <div class="form-floating">
-                                <input type="text" name="pet_species" class="form-control bg-light border-0" placeholder="ชนิด" required>
-                                <label>สายพันธุ์/ชนิด</label>
-                            </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-muted ps-1 mb-1">ประเภทสัตว์</label>
+                            <select id="quick_pet_species" name="pet_species" class="form-control bg-light border-0 shadow-sm" required>
+                                <option value="" selected disabled>เลือกประเภทสัตว์</option>
+                                <option value="สุนัข (Dog)">สุนัข (Dog)</option>
+                                <option value="แมว (Cat)">แมว (Cat)</option>
+                                <option value="นก (Bird)">นก (Bird)</option>
+                                <option value="ปลา (Fish)">ปลา (Fish)</option>
+                                <option value="สัตว์ขนาดเล็ก (Small Animal)">สัตว์ขนาดเล็ก (Small Animal)</option>
+                                <option value="สัตว์เลื้อยคลาน (Reptile)">สัตว์เลื้อยคลาน (Reptile)</option>
+                                <option value="สัตว์ป่า (Exotic)">สัตว์ป่า (Exotic)</option>
+                                <option value="อื่นๆ (Other)">อื่นๆ (Other)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-muted ps-1 mb-1">สายพันธุ์</label>
+                            <input type="text" id="quick_pet_breed" name="pet_breed" class="form-control bg-light border-0 shadow-sm" placeholder="เลือกสายพันธุ์..." required>
                         </div>
                     </div>
                     <div class="mt-4">
@@ -796,7 +823,7 @@
                 </div>
                 <div class="mb-4">
                     <label for="modalPhoneInput" class="form-label small text-muted fw-bold">เบอร์โทรศัพท์ติดต่อใหม่</label>
-                    <input type="text" id="modalPhoneInput" class="form-control form-control-lg border bg-white rounded-3 shadow-sm" placeholder="ระบุเบอร์โทรศัพท์">
+                    <input type="tel" id="modalPhoneInput" class="form-control form-control-lg border bg-white rounded-3 shadow-sm" placeholder="ระบุเบอร์โทรศัพท์ 10 หลัก" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)">
                 </div>
                 <input type="hidden" id="modalResultElId">
                 <button onclick="savePhoneUpdate()" class="btn btn-primary w-100 btn-premium py-3 shadow">
@@ -894,7 +921,101 @@
 {% endblock %}
 
 {% block extra_js %}
+<!-- Add Tom Select JS -->
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+<!-- Add SweetAlert2 for nice alerts -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const quickPetSpeciesSelect = document.getElementById('quick_pet_species');
+        const quickPetBreedInput = document.getElementById('quick_pet_breed');
+        const quickRegForm = document.getElementById('quickRegForm');
+
+        if (quickPetBreedInput) {
+            const tomSelect = new TomSelect(quickPetBreedInput, {
+                create: true,
+                maxItems: 1,
+                placeholder: 'ระบุสายพันธุ์...',
+                createFilter: function(input) {
+                    input = input.trim();
+                    if(input.length === 0) return false;
+                    const regex = /^[a-zA-Zก-๙0-9\s]+$/;
+                    return regex.test(input);
+                },
+                render: {
+                    option_create: function(data, escape) {
+                        return '<div class="create text-success fw-bold p-2"><i class="fas fa-plus me-1"></i> + ใช้สายพันธุ์ใหม่: <strong>' + escape(data.input) + '</strong></div>';
+                    },
+                    no_results: function(data, escape) {
+                        return '<div class="no-results p-2 text-muted small">ไม่พบสายพันธุ์ในระบบ พิมพ์ต่อเพื่อเพิ่มใหม่</div>';
+                    }
+                },
+                onChange: function(value) {
+                    const tsControl = quickPetBreedInput.parentElement.querySelector('.ts-control');
+                    if (value && value.trim() !== '') {
+                        tsControl.classList.remove('is-invalid', 'border-danger');
+                        tsControl.classList.add('is-valid', 'border-success');
+                        tsControl.style.borderWidth = '2px';
+                    } else {
+                        tsControl.classList.remove('is-valid', 'border-success');
+                    }
+                }
+            });
+
+            // Function to load breeds based on selected species
+            const loadBreeds = (speciesName) => {
+                tomSelect.clearOptions();
+                tomSelect.clear();
+                
+                if (speciesName) {
+                    fetch(`/ajax/get-breeds/?species=${encodeURIComponent(speciesName)}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.breeds && data.breeds.length > 0) {
+                                const newOptions = data.breeds.map(breed => ({ value: breed, text: breed }));
+                                tomSelect.addOptions(newOptions);
+                            }
+                        })
+                        .catch(err => console.error('Error fetching breeds:', err));
+                }
+            };
+
+            if (quickPetSpeciesSelect) {
+                quickPetSpeciesSelect.addEventListener('change', function(e) {
+                    loadBreeds(e.target.value);
+                });
+            }
+        }
+
+        // Intercept form submission to apply atomic validation constraint
+        if(quickRegForm) {
+            quickRegForm.addEventListener('submit', function(e) {
+                // Ensure species and breed are not empty
+                const speciesVal = quickPetSpeciesSelect ? quickPetSpeciesSelect.value : '';
+                const breedVal = quickPetBreedInput ? quickPetBreedInput.value : '';
+                
+                if (!speciesVal || !breedVal || breedVal.trim() === '') {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'ข้อมูลไม่ครบถ้วน',
+                        text: 'กรุณาระบุรายละเอียด "ประเภทสัตว์" และ "สายพันธุ์" ให้ครบถ้วน'
+                    });
+                    
+                    const tsControl = quickPetBreedInput.parentElement.querySelector('.ts-control');
+                    if(tsControl && (!breedVal || breedVal.trim() === '')) {
+                        tsControl.classList.add('is-invalid', 'border-danger');
+                        tsControl.style.borderWidth = '2px';
+                    }
+                } else {
+                    // Trim value before submitting for data integrity
+                    quickRegForm.querySelector('input[name="pet_breed"]').value = breedVal.trim();
+                }
+            });
+        }
+    });
+
     // 0. Primary Management Functions (High priority)
     function executeDatabaseCleanup() {
         // Close modal first
@@ -1045,29 +1166,64 @@
 
     // 3. Core functions for Dashboard Actions
     function savePhoneUpdate() {
-        const ownerId = document.getElementById('editPhoneModal').getAttribute('data-target-id');
-        const newPhone = document.getElementById('modalPhoneInput').value;
-        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-        
-        console.log("Saving phone update for OwnerID:", ownerId, "New Phone:", newPhone);
-        if(!ownerId) { alert("Error: No OwnerID selected"); return; }
+        try {
+            const ownerId = document.getElementById('editPhoneModal').getAttribute('data-target-id');
+            const newPhoneInput = document.getElementById('modalPhoneInput');
+            const newPhone = newPhoneInput ? newPhoneInput.value : '';
+            
+            let csrfToken = '';
+            const csrfEl = document.querySelector('[name=csrfmiddlewaretoken]');
+            if (csrfEl) { csrfToken = csrfEl.value; }
+            else { throw new Error("ไม่พบ Token ความปลอดภัย (CSRF Token) ในหน้าเว็บ"); }
+            
+            if(!ownerId) { 
+                Swal.fire('ข้อผิดพลาด', 'ไม่พบรหัสเจ้าของสัตว์ (OwnerID)', 'error');
+                return; 
+            }
+            if(!newPhone || newPhone.trim() === '') {
+                Swal.fire('แจ้งเตือน', 'กรุณาระบุเบอร์โทรศัพท์ใหม่', 'warning');
+                return;
+            }
 
-        const formData = new URLSearchParams();
-        formData.append('func_name', 'update_phone_via_view');
-        formData.append('owner_id', ownerId);
-        formData.append('new_phone', newPhone);
+            // Show loading state
+            Swal.fire({
+                title: 'กำลังเชื่อมต่อฐานข้อมูล...',
+                html: 'อัปเดตเบอร์โทรศัพท์ผ่าน View Trigger',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
 
-        fetch("{% url 'ajax_execute_scalar' %}", {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': csrfToken },
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) { location.reload(); } 
-            else { alert("Error: " + data.error); }
-        })
-        .catch(err => alert("Connection error"));
+            const formData = new URLSearchParams();
+            formData.append('func_name', 'update_phone_via_view');
+            formData.append('owner_id', ownerId);
+            formData.append('new_phone', newPhone);
+
+            fetch("{% url 'ajax_execute_scalar' %}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': csrfToken },
+                body: formData
+            })
+            .then(response => {
+                if(!response.ok) throw new Error("HTTP Status " + response.status);
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) { 
+                    Swal.fire('สำเร็จ!', data.message || 'อัปเดตเบอร์โทรลสำเร็จ', 'success').then(() => {
+                        location.reload(); 
+                    });
+                } else { 
+                    Swal.fire('เกิดข้อผิดพลาดจากฐานข้อมูล', data.error || 'Unknown Error', 'error');
+                }
+            })
+            .catch(err => {
+                console.error("Fetch Error:", err);
+                Swal.fire('การเชื่อมต่อล้มเหลว', err.toString(), 'error');
+            });
+        } catch (e) {
+            console.error("Sync Error in savePhoneUpdate:", e);
+            Swal.fire('ข้อผิดพลาดของระบบ', e.toString(), 'error');
+        }
     }
 
     function savePetUpdate() {

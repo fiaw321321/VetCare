@@ -91,6 +91,15 @@ class Vet(models.Model):
     working_hours = models.TextField(blank=True, null=True, verbose_name='ตารางปฏิบัติงาน')
     remarks = models.TextField(blank=True, null=True, verbose_name='หมายเหตุ')
     image = models.ImageField(upload_to='vet_images/', blank=True, null=True, verbose_name='รูปถ่ายแพทย์')
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        updated = False
+        if not self.doctor_id:
+            self.doctor_id = f"VET{self.pk:06d}"
+            updated = True
+        if updated:
+            Vet.objects.filter(pk=self.pk).update(doctor_id=self.doctor_id)
+
     def __str__(self):
         return f"{self.first_name} {self.last_name}".strip() if self.first_name or self.last_name else "Unnamed Vet"
 class Medicine(models.Model):

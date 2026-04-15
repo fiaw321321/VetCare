@@ -3,6 +3,8 @@
 {% block title %}ลงทะเบียนสัตว์เลี้ยง{% endblock %}
 {% block extra_css %}
 <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
 <style>
 /* Profile Upload UI - Circular Style */
 .profile-upload-wrapper {
@@ -96,7 +98,7 @@
         </div>
         
         <div class="card-body p-4" style="background-color: var(--card-bg);">
-            <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+            <form method="post" enctype="multipart/form-data" class="needs-validation" id="petForm" novalidate>
                 {% csrf_token %}
 
                 
@@ -192,13 +194,34 @@
                                 {{ form.name }}
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label text-primary fw-bold d-block mb-1">เพศ (Sex)</label>
-                                <div class="px-3 py-2 border rounded-4 d-flex align-items-center gap-4" style="background: var(--input-bg); border-color: var(--border-color) !important; min-height: 48px;">
+                                <label class="form-label text-primary fw-bold d-block mb-2">เพศ (Sex)</label>
+                                <div class="d-flex gap-3 sex-radio-group w-100" id="sexSelectionGroup">
+                                    <style>
+                                        .sex-radio-group .form-check-input { display: none !important; }
+                                        .sex-radio-group .sex-btn {
+                                            display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+                                            padding: 0.65rem 1rem; border: 2px solid #e2e8f0; border-radius: 0.75rem;
+                                            font-weight: 700; cursor: pointer; transition: all 0.2s ease-in-out;
+                                            width: 100%; color: #64748b; background-color: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.02); margin: 0;
+                                        }
+                                        .sex-radio-group .sex-btn:hover { background-color: #f8fafc; border-color: #cbd5e1; transform: translateY(-1px); }
+                                        .sex-radio-group .form-check-input:checked + .sex-btn-male {
+                                            background-color: #eff6ff; border-color: #3b82f6; color: #1d4ed8; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+                                        }
+                                        .sex-radio-group .form-check-input:checked + .sex-btn-female {
+                                            background-color: #fdf2f8; border-color: #ec4899; color: #be185d; box-shadow: 0 4px 12px rgba(236, 72, 153, 0.2);
+                                        }
+                                    </style>
                                     {% for radio in form.sex %}
                                         {% if radio.choice_label and '----' not in radio.choice_label %}
-                                        <div class="form-check mb-0 d-flex align-items-center gap-2 custom-admin-radio">
+                                        <div class="flex-fill">
                                             {{ radio.tag }}
-                                            <label class="form-check-label mb-0 fw-bold" for="{{ radio.id_for_label }}" style="color: #334155; cursor: pointer;">
+                                            <label class="sex-btn {% if 'ผู้' in radio.choice_label or 'Male' in radio.choice_label %}sex-btn-male{% else %}sex-btn-female{% endif %}" for="{{ radio.id_for_label }}">
+                                                {% if 'ผู้' in radio.choice_label or 'Male' in radio.choice_label %}
+                                                    <i class="fas fa-mars fa-lg"></i>
+                                                {% else %}
+                                                    <i class="fas fa-venus fa-lg"></i>
+                                                {% endif %}
                                                 {{ radio.choice_label }}
                                             </label>
                                         </div>
@@ -280,9 +303,8 @@
                 </div>
 
                 <div class="d-flex justify-content-end gap-2 border-top pt-4 mt-3">
-                    <button type="button" class="btn btn-outline-secondary px-4 fw-bold">🔍 ค้นหา</button>
                     <a href="{% url 'pet_list' %}" class="btn btn-danger px-4 fw-bold">🚫 ยกเลิก</a>
-                    <button type="submit" class="btn btn-success px-5 fw-bold text-white" style="background-color: #28a745;">💾 บันทึก</button>
+                    <button type="submit" id="btnSubmit" class="btn btn-success px-5 fw-bold text-white" style="background-color: #28a745;">💾 บันทึก</button>
                 </div>
             </form>
         </div>
@@ -336,6 +358,8 @@
 
 {% block extra_js %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const imageInput = document.querySelector('input[type="file"]');
@@ -470,6 +494,174 @@
                     }
                 }
             });
+        }
+
+        // --- Client-Side Validation Logic ---
+        const petForm = document.getElementById('petForm');
+        const btnSubmit = document.getElementById('btnSubmit');
+
+        if (petForm) {
+            petForm.addEventListener('submit', function(e) {
+                e.preventDefault(); // Prevent standard submit
+
+                // Clear previous validation states
+                document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+                document.querySelectorAll('.invalid-feedback-custom').forEach(el => el.remove());
+
+                let isValid = true;
+                let firstErrorEl = null;
+
+                // Explicitly check required fields (Name logic, inputs, selects)
+                const requiredFields = [
+                    { id: 'id_owner_first_name', msg: 'กรุณากรอกชื่อเจ้าของ' },
+                    { id: 'id_owner_last_name', msg: 'กรุณากรอกนามสกุลเจ้าของ' },
+                    { id: 'id_owner_phone', msg: 'กรุณากรอกเบอร์มือถือ' },
+                    { id: 'id_owner_email', msg: 'กรุณากรอกอีเมลสำหรับล็อกอิน' },
+                    { id: 'id_owner_password', msg: 'กรุณากำหนดรหัสผ่าน' },
+                    { id: 'id_owner_password_confirm', msg: 'กรุณายืนยันรหัสผ่านอีกครั้ง' },
+                    { id: 'id_name', msg: 'กรุณากรอกชื่อสัตว์เลี้ยง' },
+                    { id: 'id_species', msg: 'กรุณาเลือกประเภทสัตว์เลี้ยง' },
+                    { id: 'id_breed', msg: 'กรุณากรอกสายพันธุ์' },
+                    { id: 'id_birth_date', msg: 'กรุณาระบุวันเกิดสัตว์เลี้ยง' },
+                    { id: 'id_price_level', msg: 'กรุณาเลือกระดับราคา' }
+                ];
+
+                const showError = (inputEl, message) => {
+                    inputEl.classList.add('is-invalid');
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'invalid-feedback invalid-feedback-custom fw-bold small mt-1';
+                    errorDiv.innerHTML = `<i class="fas fa-exclamation-circle me-1"></i>${message}`;
+                    inputEl.parentNode.appendChild(errorDiv);
+                    if (!firstErrorEl) firstErrorEl = inputEl;
+                    isValid = false;
+                };
+
+                // Validate Inputs and Selects
+                requiredFields.forEach(field => {
+                    const el = document.getElementById(field.id);
+                    // Check if element exists (some fields might be hidden if owner has account)
+                    if (el && !el.value.trim()) {
+                        showError(el, field.msg);
+                    }
+                });
+
+                // Validation for Password matching
+                const pwd = document.getElementById('id_owner_password');
+                const confirmPwd = document.getElementById('id_owner_password_confirm');
+                if (pwd && confirmPwd && pwd.value !== confirmPwd.value && confirmPwd.value.trim() !== '') {
+                    showError(confirmPwd, 'รหัสผ่านไม่ตรงกัน กรุณาตรวจสอบอีกครั้ง');
+                }
+
+                // Specifically validate Gender (Radio Buttons)
+                let sexChecked = false;
+                const sexRadios = document.querySelectorAll('input[name="sex"]');
+                if (sexRadios.length > 0) {
+                    sexRadios.forEach(radio => { if (radio.checked) sexChecked = true; });
+                    if (!sexChecked) {
+                        const sexContainer = sexRadios[0].closest('.px-3.py-2.border'); // The bounding box
+                        if(sexContainer) {
+                            sexContainer.classList.add('border', 'border-danger');
+                            const err = document.createElement('div');
+                            err.className = 'invalid-feedback-custom text-danger fw-bold small mt-1 d-block';
+                            err.innerHTML = `<i class="fas fa-exclamation-circle me-1"></i>กรุณาระบุเพศของสัตว์เลี้ยง`;
+                            sexContainer.parentNode.appendChild(err);
+                            if (!firstErrorEl) firstErrorEl = sexContainer;
+                        }
+                        isValid = false;
+                    } else {
+                        const sexContainer = sexRadios[0].closest('.px-3.py-2.border');
+                        if (sexContainer) sexContainer.classList.remove('border-danger');
+                    }
+                }
+
+                if (!isValid) {
+                    // Scroll to the first error element smoothly
+                    if (firstErrorEl) {
+                        firstErrorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        if(firstErrorEl.focus) firstErrorEl.focus();
+                    }
+                } else {
+                    // Passed Validation! Show SweetAlert and Spinner
+                    btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>ระบบกำลังบันทึก...';
+                    btnSubmit.disabled = true;
+
+                    Swal.fire({
+                        title: 'บันทึกข้อมูลสำเร็จ!',
+                        text: 'ข้อมูลสัตว์เลี้ยงของคุณถูกเพิ่มเข้าสู่ระบบเรียบร้อยแล้ว',
+                        icon: 'success',
+                        confirmButtonColor: '#10b981',
+                        confirmButtonText: '<i class="fas fa-check me-1"></i> ตกลง',
+                        allowOutsideClick: false
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            petForm.submit();
+                        }
+                    });
+                }
+            });
+        }
+
+        // --- Autocomplete for Breed via Tom Select ---
+        const speciesSelect = document.getElementById('id_species');
+        const breedInput = document.getElementById('id_breed');
+
+        if (breedInput) {
+            // Check if it is currently a text input, Tom Select can enhance a text input!
+            const tomSelect = new TomSelect(breedInput, {
+                create: true,
+                maxItems: 1,
+                createFilter: function(input) {
+                    input = input.toLowerCase();
+                    return input.length > 0;
+                },
+                render: {
+                    option_create: function(data, escape) {
+                        return '<div class="create text-primary fw-bold"><i class="fas fa-plus me-1"></i> เพิ่มสายพันธุ์ใหม่: <strong>' + escape(data.input) + '</strong></div>';
+                    },
+                    no_results: function(data, escape) {
+                        return '<div class="no-results p-2 text-muted small">ไม่พบสายพันธุ์ที่ค้นหา (พิมพ์เพื่อเพิ่มใหม่)</div>';
+                    }
+                },
+                placeholder: 'พิมพ์หรือเลือกสายพันธุ์...',
+                valueField: 'value',
+                labelField: 'text',
+                searchField: 'text',
+                maxOptions: 50,
+                sortField: { field: "text", direction: "asc" }
+            });
+
+            // Function to update breeds dropdown based on species
+            const loadBreeds = (speciesName) => {
+                tomSelect.clearOptions();
+                tomSelect.clear();
+                
+                if (speciesName) {
+                    fetch(`/ajax/get-breeds/?species=${encodeURIComponent(speciesName)}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.breeds && data.breeds.length > 0) {
+                                const newOptions = data.breeds.map(breed => ({ value: breed, text: breed }));
+                                tomSelect.addOptions(newOptions);
+                            }
+                        })
+                        .catch(err => console.error('Error fetching breeds:', err));
+                }
+            };
+
+            if (speciesSelect) {
+                speciesSelect.addEventListener('change', function(e) {
+                    const speciesName = e.target.options[e.target.selectedIndex]?.text || '';
+                    // Clean species name from "(Cat)" or similar parts if needed, or pass raw
+                    // Since myapp models likely save raw choice labels, let's pass the raw text or value. 
+                    const speciesValue = e.target.value; 
+                    loadBreeds(speciesValue);
+                });
+
+                // Load on init if species already selected
+                if(speciesSelect.value) {
+                    loadBreeds(speciesSelect.value);
+                }
+            }
         }
     });
 </script>

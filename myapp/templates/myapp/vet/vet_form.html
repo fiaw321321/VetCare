@@ -3,6 +3,7 @@
 {% block title %}ทะเบียนแพทย์สัตว์{% endblock %}
 {% block extra_css %}
 <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
 <style>
 /* Profile Upload UI */
 .profile-upload-wrapper {
@@ -103,7 +104,7 @@
         </div>
 
         <div class="card-body p-4" style="background-color: var(--card-bg);">
-            <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+            <form method="post" enctype="multipart/form-data" class="needs-validation" id="vetForm" novalidate>
                 {% csrf_token %}
 
                 
@@ -249,7 +250,7 @@
                 
                 <div class="d-flex justify-content-end gap-2 mt-4 pt-4 border-top">
                     <a href="{% url 'vet_list' %}" class="btn btn-danger px-5 fw-bold rounded-pill"><i class="fas fa-times me-2"></i> ยกเลิก</a>
-                    <button type="submit" class="btn btn-success px-5 fw-bold rounded-pill"><i class="fas fa-save me-2"></i> บันทึก</button>
+                    <button type="submit" id="btnSubmit" class="btn btn-success px-5 fw-bold rounded-pill"><i class="fas fa-save me-2"></i> บันทึก</button>
                 </div>
             </form>
         </div>
@@ -364,6 +365,7 @@
 
 {% block extra_js %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const imageInput = document.querySelector('input[type="file"]');
@@ -498,6 +500,74 @@
                         btnClearPhoto.style.backgroundColor = '#ef4444';
                         btnClearPhoto.title = "ลบรูป";
                     }
+                }
+            });
+        }
+
+        // --- Client-Side Validation Logic ---
+        const vetForm = document.getElementById('vetForm');
+        const btnSubmit = document.getElementById('btnSubmit');
+
+        if (vetForm) {
+            vetForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                // Clear previous validation 
+                document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+                document.querySelectorAll('.invalid-feedback-custom').forEach(el => el.remove());
+
+                let isValid = true;
+                let firstErrorEl = null;
+
+                // Required Fields
+                const requiredFields = [
+                    { id: 'id_first_name', msg: 'กรุณากรอกชื่อสัตวแพทย์' },
+                    { id: 'id_last_name', msg: 'กรุณากรอกนามสกุล' },
+                    { id: 'id_license_no', msg: 'กรุณากรอกเลขที่ใบอนุญาต' },
+                    { id: 'id_role_level', msg: 'กรุณาเลือกระดับตำแหน่ง' },
+                    { id: 'id_specialization', msg: 'กรุณาเลือกสาขาความเชี่ยวชาญ' },
+                    { id: 'id_phone', msg: 'กรุณากรอกเบอร์มือถือ' }
+                ];
+
+                const showError = (inputEl, message) => {
+                    inputEl.classList.add('is-invalid');
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'invalid-feedback invalid-feedback-custom fw-bold small mt-1';
+                    errorDiv.innerHTML = `<i class="fas fa-exclamation-circle me-1"></i>${message}`;
+                    inputEl.parentNode.appendChild(errorDiv);
+                    if (!firstErrorEl) firstErrorEl = inputEl;
+                    isValid = false;
+                };
+
+                requiredFields.forEach(field => {
+                    const el = document.getElementById(field.id);
+                    if (el && !el.value.trim()) {
+                        showError(el, field.msg);
+                    }
+                });
+
+                if (!isValid) {
+                    if (firstErrorEl) {
+                        firstErrorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        if(firstErrorEl.focus) firstErrorEl.focus();
+                    }
+                } else {
+                    // Success -> Custom Alert & Loading
+                    btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>กำลังบันทึก...';
+                    btnSubmit.disabled = true;
+
+                    Swal.fire({
+                        title: 'บันทึกข้อมูลสำเร็จ!',
+                        text: 'ข้อมูลสัตวแพทย์ถูกเพิ่มเข้าสู่ระบบเรียบร้อยแล้ว',
+                        icon: 'success',
+                        confirmButtonColor: '#10b981',
+                        confirmButtonText: '<i class="fas fa-check me-1"></i> ตกลง',
+                        allowOutsideClick: false
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            vetForm.submit();
+                        }
+                    });
                 }
             });
         }

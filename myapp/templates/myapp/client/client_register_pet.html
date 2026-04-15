@@ -136,13 +136,36 @@
                                 {% endif %}
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label d-block text-muted fw-bold small">เพศ</label>
-                                <div class="d-flex gap-4 pt-2">
+                                <label class="form-label d-block text-muted fw-bold small mb-2">เพศ</label>
+                                <div class="d-flex gap-3 sex-radio-group w-100" id="sexSelectionGroup">
+                                    <style>
+                                        .sex-radio-group .form-check-input { display: none !important; }
+                                        .sex-radio-group .sex-btn {
+                                            display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+                                            padding: 0.65rem 1rem; border: 2px solid #e2e8f0; border-radius: 0.75rem;
+                                            font-weight: 700; cursor: pointer; transition: all 0.2s ease-in-out;
+                                            width: 100%; color: #64748b; background-color: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.02); margin: 0;
+                                        }
+                                        .sex-radio-group .sex-btn:hover { background-color: #f8fafc; border-color: #cbd5e1; transform: translateY(-1px); }
+                                        .sex-radio-group .form-check-input:checked + .sex-btn-male {
+                                            background-color: #eff6ff; border-color: #3b82f6; color: #1d4ed8; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+                                        }
+                                        .sex-radio-group .form-check-input:checked + .sex-btn-female {
+                                            background-color: #fdf2f8; border-color: #ec4899; color: #be185d; box-shadow: 0 4px 12px rgba(236, 72, 153, 0.2);
+                                        }
+                                    </style>
                                     {% for radio in form.sex %}
                                         {% if radio.choice_label and '----' not in radio.choice_label %}
-                                        <div class="form-check custom-radio">
+                                        <div class="flex-fill">
                                             {{ radio.tag }}
-                                            <label class="form-check-label fw-bold" for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
+                                            <label class="sex-btn {% if 'ผู้' in radio.choice_label or 'Male' in radio.choice_label %}sex-btn-male{% else %}sex-btn-female{% endif %}" for="{{ radio.id_for_label }}">
+                                                {% if 'ผู้' in radio.choice_label or 'Male' in radio.choice_label %}
+                                                    <i class="fas fa-mars fa-lg"></i>
+                                                {% else %}
+                                                    <i class="fas fa-venus fa-lg"></i>
+                                                {% endif %}
+                                                {{ radio.choice_label }}
+                                            </label>
                                         </div>
                                         {% endif %}
                                     {% endfor %}
