@@ -252,6 +252,7 @@
     /* Status Colors */
     .bg-pending { background: #fef3c7; color: #d97706; border: 1px solid #fde68a; }
     .bg-confirmed { background: #d1fae5; color: #059669; border: 1px solid #a7f3d0; }
+    .bg-in-progress { background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; }
     .bg-completed { background: #dbeafe; color: #2563eb; border: 1px solid #bfdbfe; }
     .bg-cancelled { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
 
@@ -280,9 +281,10 @@
             <span class="status-badge-float 
                 {% if object.status == 'pending' %}bg-pending
                 {% elif object.status == 'confirmed' %}bg-confirmed
+                {% elif object.status == 'in_progress' %}bg-in-progress
                 {% elif object.status == 'completed' %}bg-completed
                 {% else %}bg-cancelled{% endif %}">
-                <i class="fas {% if object.status == 'confirmed' %}fa-check-circle{% elif object.status == 'pending' %}fa-clock{% elif object.status == 'completed' %}fa-check-double{% else %}fa-times-circle{% endif %} me-1"></i>
+                <i class="fas {% if object.status == 'confirmed' %}fa-check-circle{% elif object.status == 'pending' %}fa-clock{% elif object.status == 'in_progress' %}fa-stethoscope{% elif object.status == 'completed' %}fa-check-double{% else %}fa-times-circle{% endif %} me-1"></i>
                 {{ object.get_status_display }}
             </span>
         </header>

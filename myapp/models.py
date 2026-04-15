@@ -173,10 +173,11 @@ class Medicine(models.Model):
         return self.name
 class Appointment(models.Model):
     STATUS_CHOICES = [
-        ('pending', 'รอยืนยัน'),
-        ('confirmed', 'ยืนยันแล้ว'),
-        ('cancelled', 'ยกเลิก'),
-        ('completed', 'เสร็จสิ้น'),
+        ('pending',     'รอยืนยัน'),
+        ('confirmed',   'ยืนยันแล้ว'),
+        ('in_progress', 'กำลังตรวจ'),
+        ('cancelled',   'ยกเลิก'),
+        ('completed',   'เสร็จสิ้น'),
     ]
     SERVICE_CHOICES = [
         ('ตรวจสุขภาพ', 'ตรวจสุขภาพ'),
