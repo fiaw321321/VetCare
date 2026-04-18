@@ -14,8 +14,10 @@ dist/
 build/
 .env
 
-# Django log
+# Django
 *.log
+db.sqlite3
+media/
 
 # VS Code / IDE
 .vscode/

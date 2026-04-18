@@ -611,13 +611,27 @@ def admin_user_delete(request, user_id):
         return redirect('admin_user_management')
     if request.method == 'POST':
         username = target_user.username
+        # ลบ Owner profile (และ cascade ลบสัตว์เลี้ยง, นัดหมาย, ประวัติการรักษา)
+        owner_profile = getattr(target_user, 'owner_profile', None)
+        deleted_summary = []
+        if owner_profile:
+            pet_count = owner_profile.pets.count()
+            owner_profile.delete()  # CASCADE → ลบ Pet → ลบ Appointment + MedicalRecord
+            deleted_summary.append(f'ข้อมูลเจ้าของสัตว์และสัตว์เลี้ยง {pet_count} ตัว')
         target_user.delete()
-        messages.success(request, f'ลบบัญชี {username} เรียบร้อยแล้ว')
+        extra = f' (รวมถึง{", ".join(deleted_summary)})' if deleted_summary else ''
+        messages.success(request, f'ลบบัญชี {username} เรียบร้อยแล้ว{extra}')
         return redirect('admin_user_management')
+    # นับข้อมูลที่จะถูกลบด้วยเพื่อแสดงในหน้า confirm
+    owner_profile = getattr(target_user, 'owner_profile', None)
+    pet_count = owner_profile.pets.count() if owner_profile else 0
+    extra_warning = 'คำเตือน: การลบบัญชีผู้ใช้จะลบข้อมูลทั้งหมดที่เกี่ยวข้องอย่างถาวร'
+    if owner_profile:
+        extra_warning += f' ได้แก่ ข้อมูลเจ้าของสัตว์, สัตว์เลี้ยง {pet_count} ตัว, นัดหมาย และประวัติการรักษาทั้งหมด'
     return render(request, 'myapp/core/confirm_delete.html', {
         'item_name': f'บัญชีผู้ใช้: {target_user.username} ({target_user.email})',
         'back_url': '/admin-backend/users/',
-        'extra_info': 'คำเตือน: การลบบัญชีผู้ใช้จะส่งผลต่อข้อมูลที่เกี่ยวข้องกับผู้ใช้นี้ทั้งหมด'
+        'extra_info': extra_warning
     })
 from django.conf import settings
 def register(request):

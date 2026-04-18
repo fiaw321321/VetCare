@@ -3,6 +3,40 @@
 
 {% block extra_css %}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css">
+    <style>
+        /* Tom Select custom style for client form */
+        .ts-wrapper .ts-control {
+            border-radius: 0.75rem !important;
+            border: 1.5px solid #e2e8f0 !important;
+            padding: 0.55rem 1rem !important;
+            font-size: 0.95rem;
+            background: #fff;
+            box-shadow: none !important;
+        }
+        .ts-wrapper.focus .ts-control {
+            border-color: #0ea5e9 !important;
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15) !important;
+        }
+        .ts-dropdown {
+            border-radius: 0.75rem !important;
+            border: 1.5px solid #e2e8f0 !important;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1) !important;
+            overflow: hidden;
+        }
+        .ts-dropdown .option {
+            padding: 0.5rem 1rem;
+        }
+        .ts-dropdown .option:hover, .ts-dropdown .option.active {
+            background: #f0f9ff;
+            color: #0ea5e9;
+        }
+        #breed-loading {
+            display: none;
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+    </style>
     <style>
         :root {
             --primary: #0ea5e9;
@@ -172,12 +206,16 @@
                                 </div>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label text-muted fw-bold small">สายพันธุ์</label>
+                                <label class="form-label text-muted fw-bold small">สายพันธุ์ <span class="text-danger">*</span></label>
                                 {{ form.species }}
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label text-muted fw-bold small">พันธุ์ย่อย</label>
                                 {{ form.breed }}
+                                <div id="breed-loading"><i class="fas fa-circle-notch fa-spin me-1"></i>กำลังโหลด...</div>
+                                <div id="breed-hint" class="form-text text-muted small mt-1" style="display:none;">
+                                    <i class="fas fa-info-circle me-1 text-primary"></i>เลือกจากรายการหรือพิมพ์เพื่อค้นหา
+                                </div>
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label text-muted fw-bold small">วันเกิด</label>
@@ -259,6 +297,7 @@
 
 {% block extra_js %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
 <script>
     let cropper;
     const imageInput = document.getElementById('{{ form.image.id_for_label }}');
@@ -329,5 +368,86 @@
             cropModal.hide();
         }, 'image/jpeg');
     });
+
+    // ====== Tom Select: Smart Breed Dropdown ======
+    (function() {
+        const speciesSelect = document.getElementById('id_species');
+        const breedInput = document.getElementById('id_breed');
+        const breedLoading = document.getElementById('breed-loading');
+        const breedHint = document.getElementById('breed-hint');
+
+        if (!breedInput) return;
+
+        // Initialize Tom Select on breed input
+        const tomBreed = new TomSelect(breedInput, {
+            create: false,          // ไม่ให้พิมพ์เองอิสระ — ต้องเลือกจากรายการ
+            maxItems: 1,
+            placeholder: 'เลือกสายพันธุ์...',
+            valueField: 'value',
+            labelField: 'text',
+            searchField: 'text',
+            maxOptions: 100,
+            sortField: { field: 'text', direction: 'asc' },
+            render: {
+                no_results: function(data, escape) {
+                    return '<div class="no-results p-2 text-muted small"><i class="fas fa-exclamation-circle me-1 text-warning"></i>ไม่พบสายพันธุ์ในระบบ — กรุณาเลือกประเภทสัตว์ก่อน</div>';
+                }
+            },
+            onInitialize: function() {
+                this.disable(); // Disable until species is selected
+            }
+        });
+
+        const loadBreeds = (speciesValue) => {
+            tomBreed.clear();
+            tomBreed.clearOptions();
+
+            if (!speciesValue) {
+                tomBreed.disable();
+                tomBreed.settings.placeholder = 'เลือกประเภทสัตว์ก่อน...';
+                tomBreed.inputState();
+                if (breedHint) breedHint.style.display = 'none';
+                return;
+            }
+
+            // Show loading
+            if (breedLoading) breedLoading.style.display = 'block';
+            tomBreed.disable();
+
+            fetch(`/ajax/get-breeds/?species=${encodeURIComponent(speciesValue)}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (breedLoading) breedLoading.style.display = 'none';
+
+                    if (data.breeds && data.breeds.length > 0) {
+                        const opts = data.breeds.map(b => ({ value: b, text: b }));
+                        tomBreed.addOptions(opts);
+                        tomBreed.enable();
+                        tomBreed.settings.placeholder = 'เลือกสายพันธุ์...';
+                        if (breedHint) breedHint.style.display = 'block';
+                    } else {
+                        tomBreed.enable();
+                        tomBreed.settings.placeholder = 'ยังไม่มีข้อมูลสายพันธุ์';
+                        if (breedHint) breedHint.style.display = 'none';
+                    }
+                    tomBreed.inputState();
+                })
+                .catch(err => {
+                    if (breedLoading) breedLoading.style.display = 'none';
+                    tomBreed.enable();
+                    console.error('Error fetching breeds:', err);
+                });
+        };
+
+        if (speciesSelect) {
+            speciesSelect.addEventListener('change', function() {
+                loadBreeds(this.value);
+            });
+            // Load on init if already selected
+            if (speciesSelect.value) {
+                loadBreeds(speciesSelect.value);
+            }
+        }
+    })();
 </script>
 {% endblock %}
